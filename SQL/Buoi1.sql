@@ -24,15 +24,17 @@ create table `Account` (
 	departmentId bigint,
     positionId bigint, 
     createDate datetime,
-	CONSTRAINT fk_departmentId FOREIGN KEY (departmentId) REFERENCES Department(departmentId),
-	constraint fk_positionId foreign key (positionId) references `Position`(positionId)
+	CONSTRAINT fk_Account_Department FOREIGN KEY (departmentId) REFERENCES Department(departmentId),
+	constraint fk_Account_Position foreign key (positionId) references `Position`(positionId)
     );    
     --
 create table `Group` ( 
 	groupId bigint primary key auto_increment,
     groupName varchar(100) ,
     creatorId bigint,
-    createDate varchar(100)
+    createDate varchar(100),
+    
+    constraint fk_Group_Account foreign key (creatorId) references `Account`( accountId )
     );       
     
     
@@ -41,8 +43,8 @@ create table GroupAccount (
     accountId bigint,
 	joinDate Datetime,
     
-    constraint fk_groupId foreign key (groupId) references `Group`(groupId),
-    constraint fk_accountId foreign key (accountId) references `Account`(accountId)
+    constraint fk_groupAccount_Group foreign key (groupId) references `Group`(groupId),
+    constraint fk_groupAccount_Account foreign key (accountId) references `Account`(accountId)
     
     );
     
@@ -63,9 +65,9 @@ create table Question (
     typeId bigint,
     creatorId bigint,
     createDate date,
-    constraint fk_categoryId_from_tableQuestion foreign key (categoryId) references CategoryQuestion(categoryId),--
-    constraint fk_typeId foreign key (typeId) references TypeQuestion(typeId) ,
-    constraint fk_creatorId_from_tableQuestion foreign key (creatorId) references `Account`(accountId)
+    constraint fk_Question_CategoryQuestion foreign key (categoryId) references CategoryQuestion(categoryId),--
+    constraint fk_Question_TypeQuestion foreign key (typeId) references TypeQuestion(typeId) ,
+    constraint fk_Question_Account foreign key (creatorId) references `Account`(accountId)
     
     );
     
@@ -75,7 +77,7 @@ create table Answer (
     questionId bigint,
     isCorrect boolean,
     
-    constraint fk_questionId foreign key (questionId) references Question(questionId)
+    constraint fk_Answer_Question foreign key (questionId) references Question(questionId)
     
     );
     
@@ -88,15 +90,15 @@ create table Exam (
     creatorId bigint,
     createDate datetime,
     
-    constraint fk_categoryId_from_tableExam foreign key (categoryId ) references CategoryQuestion ( categoryId),
-    constraint fk_creatorId_from_tableExam foreign key ( creatorId) references `Account`(accountId)
+    constraint fk_Exam_CategoryQuestion foreign key (categoryId ) references CategoryQuestion ( categoryId),
+    constraint fk_Exam_Account foreign key ( creatorId) references `Account`(accountId)
     );
     
 create table ExamQuestion (
 	examId int primary key ,
     questionId int,
     
-    constraint fk_examId foreign key (examId) references Exam(examId)
+    constraint fk_Exam_ExamQuestion foreign key (examId) references Exam(examId)
     
     );
     
@@ -106,10 +108,11 @@ create table ExamQuestion (
 
 --     SHOW TABLES;
 --     drop table answer;--     constraint fk_creatorId_from_tableQuestion foreign key (creatorId) references `Account`(accountId)
-
+		drop database baitapVTI;
     
-    alter table Question
-    drop CONSTRAINT  fk_creatorId;
-    
-     alter table Question 
-     add   constraint fk_creatorId_from_tableQuestion foreign key (creatorId) references `Account`(accountId)-- quy tắc đặt tên foreign key : ?
+--     alter table Question
+--     drop CONSTRAINT  fk_creatorId;
+--     
+--      alter table Question 
+--      add   constraint fk_creatorId_from_tableQuestion foreign key (creatorId) references `Account`(accountId)-- quy tắc đặt tên foreign key : ?
+-- khóa ngoại cách đặt tên : fk_table1_table2. 
