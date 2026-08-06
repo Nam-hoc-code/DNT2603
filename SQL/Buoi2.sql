@@ -4,7 +4,7 @@ drop table `group`;
 
 create database if not exists baitap_vti;
 use baitap_vti;
-
+select * from exam_question;
 create table department (
     department_id bigint primary key auto_increment,
     department_name varchar(100) not null unique
@@ -12,7 +12,7 @@ create table department (
 
 create table `position` (
     position_id bigint primary key auto_increment,
-    position_name enum('DEV','TEST','SCRUM MASTER','PM') not null 
+    position_name enum('DEV','TEST','SCRUM MASTER','PM','BA') not null unique
 );
 
 create table `account` (
@@ -46,12 +46,12 @@ create table group_account (
 
 create table type_question (
     type_id bigint primary key auto_increment,
-    type_name enum('Essay','Multiple-Choice') not null 
+    type_name enum('Essay','Multiple-Choice') not null unique
 );
 
 create table category_question (
     category_id bigint primary key auto_increment,
-    category_name enum('Java','.NET','SQL','Postman','Ruby') not null 
+    category_name enum('Java','.NET','SQL','Postman','Ruby') not null unique
 );
 
 create table question (
@@ -94,6 +94,7 @@ create table exam_question (
     constraint fk_exam_question_exam foreign key (exam_id) references exam(exam_id),
     constraint fk_exam_question_question foreign key (question_id) references question(question_id)
 );
+
 -- department
 insert into department (department_name)
 values
@@ -115,12 +116,7 @@ values
 ('TEST'),
 ('SCRUM MASTER'),
 ('PM'),
-('DEV'),
-('TEST'),
-('DEV'),
-('PM'),
-('SCRUM MASTER'),
-('DEV');
+('BA');
 
 -- account
 insert into `account`
@@ -171,24 +167,13 @@ values
 insert into type_question (type_name)
 values
 ('Essay'),
-('Multiple-Choice'),
-('Essay'),
-('Multiple-Choice'),
-('Essay'),
-('Multiple-Choice'),
-('Essay'),
-('Multiple-Choice'),
-('Essay'),
 ('Multiple-Choice');
 
+
+
 -- category_question
-insert into category_question (category_name)
-values
-('Java'),
-('.NET'),
-('SQL'),
-('Postman'),
-('Ruby'),
+INSERT INTO category_question (category_name)
+VALUES
 ('Java'),
 ('.NET'),
 ('SQL'),
@@ -196,9 +181,10 @@ values
 ('Ruby');
 
 -- question
-insert into question
+-- question
+INSERT INTO question
 (content, category_id, type_id, creator_id)
-values
+VALUES
 ('What is Java?',1,1,1),
 ('What is SQL?',3,2,2),
 ('Explain OOP.',1,1,3),
@@ -209,7 +195,6 @@ values
 ('What is Docker?',3,2,8),
 ('Explain Git.',4,1,9),
 ('What is MySQL?',5,2,10);
-
 -- answer
 insert into answer
 (content, question_id, is_correct)
@@ -225,10 +210,11 @@ values
 ('Git is a version control system.',9,true),
 ('MySQL is a relational database.',10,true);
 
+
 -- exam
-insert into exam
+INSERT INTO exam
 (code, title, category_id, duration, creator_id)
-values
+VALUES
 (1001,'Java Basic Test',1,60,1),
 (1002,'SQL Basic Test',3,45,2),
 (1003,'Backend Test',1,90,3),
@@ -254,3 +240,10 @@ values
 (8,8),
 (9,9),
 (10,10);
+
+drop database baitap_vti;
+alter table position 
+add constraint unique_position_name 
+unique (position_name);
+
+select * from position;

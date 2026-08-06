@@ -9,7 +9,7 @@ left join  department dep on acc.department_id = dep.department_id;
 -- Question 2: Viết lệnh để lấy ra thông tin các account được tạo sau ngày 20/12/2010
 select * 
 from account acc
-where create_date < '2026-08-02'; -- 2026-08-02 00:00:00
+where create_date > '2026-08-02'; -- 2026-08-02 00:00:00
 
 -- Question 3: Viết lệnh để lấy ra tất cả các developer
 select * 
@@ -125,7 +125,7 @@ group by d.department_id, d.department_name;
 select * from account;
 -- Question 12: Lấy thông tin chi tiết của câu hỏi bao gồm: thông tin cơ bản của question, loại câu hỏi, ai là người tạo ra câu hỏi, câu trả lời là gì, ...
 
-select qs.content as 'câu hỏi', cq.category_name 'loại danh mục', acc.full_name 'tên người tạo câu hỏi', aw.content 'kết quả'
+select qs.content as 'câu hỏi', cq.category_name 'loại danh mục', acc.full_name 'tên người tạo câu hỏi', tq.type_name 'kiểu câu hỏi' , aw.content 'kết quả'
 from question qs
 left join category_question cq 
 		on qs.category_id = cq.category_id
@@ -146,12 +146,14 @@ group by tq.type_id;
 
 -- Question 14: Lấy ra group không có account nào -- Question 15: Lây ra group không có account nào
 
-select dep.department_name 'Tên nhóm', count(acc.department_id) 'Tổng số'
-from account acc
-right join department dep on dep.department_id = acc.department_id
-group by dep.department_id
-having count(acc.department_id) = 0;
-
+select gr.group_name,
+       count(ga.account_id)
+from `group` gr
+left join group_account ga
+    on gr.group_id = ga.group_id
+group by gr.group_id, gr.group_name
+having count(ga.account_id) = 0;
+	
 -- Question 16: Lấy ra question không có answer nào
 
 select * from question;
