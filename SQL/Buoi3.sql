@@ -100,3 +100,31 @@ group by dep.department_id;
 -- group thì nên group bên đầy đủ. 
 -- đếm thì nên đếm bên thiếu. 
 select * from account;
+
+
+-- Question 12: Xóa tất cả các exam được tạo trước ngày 20/12/2019
+delete eq
+from exam_question eq
+join exam e
+    on eq.exam_id = e.exam_id
+where e.create_date < '2019-12-20';
+
+delete from exam
+where create_date < '2019-12-20';
+
+--  Question 13 : Xóa tất cả các question có nội dung bắt đầu bằng từ "câu hỏi"
+delete from question
+where content like 'câu hỏi%';
+
+
+-- Question 14: Update thông tin của account có id = 5 thành tên "Nguyễn Bá Lộc" và email thành loc.nguyenba@vti.com.vn
+update account
+set
+    full_name = 'Nguyễn Bá Lộc',
+    email = 'loc.nguyenba@vti.com.vn'
+where account_id = 5;
+
+-- Question 15: update account có id = 5 sẽ thuộc group có id = 4 
+update group_account
+set group_id = 4
+where account_id = 5;
