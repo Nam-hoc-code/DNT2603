@@ -10,7 +10,7 @@ left join  department dep on acc.department_id = dep.department_id;
 select * 
 from account acc
 where create_date > '2026-08-02'; -- 2026-08-02 00:00:00
-
+select * from position;
 -- Question 3: Viết lệnh để lấy ra tất cả các developer
 select * 
 from account
@@ -115,7 +115,7 @@ select
     sum(case when p.position_name = 'TEST' then 1 else 0 end) as 'TEST',
     sum(case when p.position_name = 'SCRUM MASTER' then 1 else 0 end) as 'SCRUM MASTER',
     sum(case when p.position_name = 'PM' then 1 else 0 end) as 'PM'
-from department d
+from department d -- cả hai bảng
 left join account a
     on d.department_id = a.department_id
 left join `position` p
@@ -164,3 +164,37 @@ from answer aw
 right join question qs on qs.question_id = aw.question_id
 group by qs.question_id
 having count(aw.question_id) = 0;
+
+-- 2. Union.
+-- Question 17:
+-- a) Lấy các account thuộc nhóm thứ 1
+-- b) Lấy các account thuộc nhóm thứ 2
+-- c) Ghép 2 kết quả từ câu a) và câu b) sao cho không có record nào trùng nhau
+
+select * 
+from account acc
+join group_account ga on ga.account_id = acc.account_id
+where group_id = 1 
+union 
+select * 
+from account acc
+join group_account ga on ga.account_id = acc.account_id
+where group_id = 2 ;
+select * from `group_account` ;
+
+-- Question 18:
+-- a) Lấy các group có lớn hơn 5 thành viên
+-- b) Lấy các group có nhỏ hơn 7 thành viên
+-- c) Ghép 2 kết quả từ câu a) và câu b).
+
+select gr.group_name, count(ga.account_id)
+from `group` gr
+join group_account ga on gr.group_id =  ga.group_id
+group by gr.group_id
+having count(ga.account_id) > 5
+union all
+select gr.group_name, count(ga.account_id)
+from `group` gr
+join group_account ga on gr.group_id =  ga.group_id
+group by gr.group_id
+having count(ga.account_id) < 7;
