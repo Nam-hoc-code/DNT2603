@@ -71,7 +71,6 @@ create procedure return_id_of_type_question()
     
 delimiter ;
 
-
 call return_id_of_type_question();
 -- Question 5: Sử dụng store ở question 4 để tìm ra tên của type question.
 delimiter $$
@@ -209,14 +208,15 @@ call delete_exam(5);
 select *
 from exam
 where create_date < date_sub(now(), interval 3 year);
-
 delimiter $$
 
 create procedure delete_old_exam()
 begin
-
     declare done int default 0;
     declare exam_id_value int;
+    declare total_exam int default 0;
+    declare total_exam_question int default 0;
+    declare count_exam_question int;
 
     declare exam_cursor cursor for
         select exam_id
@@ -224,13 +224,6 @@ begin
         where create_date < date_sub(now(), interval 3 year);
 
     declare continue handler for not found set done = 1;
-
-    create temporary table temp_delete_count (
-        exam_question_count int,
-        exam_count int
-    );
-
-    insert into temp_delete_count values (0, 0);
 
     open exam_cursor;
 
@@ -242,29 +235,29 @@ begin
             leave read_loop;
         end if;
 
-        update temp_delete_count
-        set exam_question_count = exam_question_count + (
-            select count(*)
-            from exam_question
-            where exam_id = exam_id_value
-        );
+        -- đếm số exam_question của exam hiện tại
+        select count(*)
+        into count_exam_question
+        from exam_question
+        where exam_id = exam_id_value;
 
+        set total_exam_question = total_exam_question + count_exam_question;
+
+        -- xóa exam
         call delete_exam(exam_id_value);
 
-        update temp_delete_count
-        set exam_count = exam_count + 1;
+        -- tăng số lượng exam đã xóa
+        set total_exam = total_exam + 1;
 
     end loop;
 
     close exam_cursor;
 
-    select *
-    from temp_delete_count;
-
-    drop temporary table temp_delete_count;
+    select 
+        total_exam as 'Số exam đã xóa',
+        total_exam_question as 'Số exam_question đã xóa';
 
 end $$
-
 delimiter ;
 
 call delete_old_exam();
@@ -272,12 +265,10 @@ call delete_old_exam();
 -- nhập vào tên phòng ban và các account thuộc phòng ban đó sẽ được
 -- chuyển về phòng ban default là phòng ban chờ việc
 delimiter $$
-
 create procedure delete_department(
     in department_name_in varchar(100)
 )
 begin
-
     declare department_id_old bigint;
     declare department_id_waiting bigint;
 
@@ -299,14 +290,11 @@ begin
     where department_id = department_id_old;
 
 end $$
-
 delimiter ;
 -- Question 12: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong năm nay
 delimiter $$
-
 create procedure statistic_question_each_month()
 begin
-
     select
         month(create_date) as month_number,
         count(*) as question_count
@@ -337,7 +325,6 @@ begin
         from months
         where month_value < date_format(curdate(), '%Y-%m')
     )
-
     select
         m.month_value,
         case

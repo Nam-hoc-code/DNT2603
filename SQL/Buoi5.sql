@@ -77,13 +77,10 @@ select  * from list_account_most_group2;
 create view list_question_too_long_content as
 select question_id 
 from question 
-where question_id in (
-		select question_id 
-		from question
-		where length(content) > 20) ;  
-
-
-delete from question --  thực hiện xóa 
+where (length(trim(regexp_replace(content,'[[:space:]]+',' '))) - length(replace(trim(regexp_replace(content, '[[:space:]]+', ' ')), ' ', '' )) + 1 > 300) ;  
+select * from list_question_too_long_content;
+use baitap_vti;
+delete from list_question_too_long_content --  thực hiện xóa 
 where question_id in (
 select question_id from ( 
 	select question_id 
@@ -103,7 +100,6 @@ create view list_question_too_long_content2 as
 	
 select question_id 
 from cte_id_long_content );
-
 select * from list_question_too_long_content2;
         
         
