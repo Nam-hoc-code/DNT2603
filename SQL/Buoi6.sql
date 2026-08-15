@@ -123,6 +123,11 @@ delimiter ;
 -- positionID: sẽ có default là developer
 -- departmentID: sẽ được cho vào 1 phòng chờ
 -- Sau đó in ra kết quả tạo thành công
+
+select * from department;
+insert into department values (department_id,department_name)
+ ( select department_id from department_name where department_id = last_insert_id(), 
+
 delimiter $$
 
 create procedure create_account(
@@ -152,13 +157,13 @@ begin
             where position_name = 'DEV'
         )
     );
-    select *
-    from account
-    where account_id = last_insert_id();
+	 select *
+     from account
+     where account_id = last_insert_id();-- 
 end $$
 
 delimiter ;
-  
+  select * from type_question;
         
 call create_account( 'Nam','nam@gmail.com');
 
@@ -186,7 +191,7 @@ begin
 end $$
 
 delimiter ;
-
+select substring_index('nam@gmail@com','@',2);
 call find_longest_question('Multiple-Choice');
 -- 
 -- Question 9: Viết 1 store cho phép người dùng xóa exam dựa vào ID
@@ -306,6 +311,7 @@ begin
 end $$
 
 delimiter ;
+call statistic_question_each_month();
 -- Question 13: Viết store để in ra mỗi tháng có bao nhiêu câu hỏi được tạo trong 6 tháng gần đây nhất
 -- (Nếu tháng nào không có thì sẽ in ra là "không có câu hỏi nào trong tháng")
 delimiter $$
