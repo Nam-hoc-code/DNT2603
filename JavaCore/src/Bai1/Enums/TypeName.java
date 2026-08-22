@@ -1,4 +1,4 @@
-package Bai1;
+package Bai1.Enums;
 
 public enum TypeName {
     Essay,

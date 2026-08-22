@@ -1,5 +1,7 @@
 package Bai1;
 
+import Bai1.Enums.PositionName;
+
 public class Position {
     private Integer positionId;
     private PositionName positionName;
@@ -8,6 +10,10 @@ public class Position {
         this.positionId = positionId;
         this.positionName = positionName;
 
+    }
+
+    public Integer getPositionId() {
+        return positionId;
     }
     public void printInformation() {
         System.out.println("Position Id : " + positionId);
