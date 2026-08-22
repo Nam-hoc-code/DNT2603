@@ -1,4 +1,7 @@
 package Bai1;
 
-public class DepartmentName {
+public enum DepartmentName {
+    Sale,
+    Marketing,
+    Development,
 }

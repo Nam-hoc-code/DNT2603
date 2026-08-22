@@ -5,7 +5,8 @@ select department_name as 'Các phòng ban'
 from department;
 
 -- Question 3: lấy ra id của phòng ban "Sales"
-select department_id as 'id phòng Sales' 
+select department_id
+    as 'id phòng Sales'
 from department
 where department_name = 'Sales';
 
