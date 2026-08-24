@@ -2,7 +2,12 @@ package Bai1.Enums;
 
 public enum PositionName {
     Leader,
+    Development,
     Fullstack,
     Manager,
-    Test
+    ScrumMaster,
+    PM,
+    Test,
+
+
 }
