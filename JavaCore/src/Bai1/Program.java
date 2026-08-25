@@ -5,12 +5,17 @@ import Bai1.Enums.DepartmentName;
 import Bai1.Enums.PositionName;
 import Bai1.Enums.TypeName;
 import Bai1.Models.*;
+import Bai1.Utils.InputFromConsole;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Scanner;
+
+
 
 public class Program {
     public static void main(String[] args) {
+
         Department department = new Department( DepartmentName.Sale);
         Position position = new Position(PositionName.Fullstack);
 
@@ -38,7 +43,7 @@ public class Program {
         Answer ans2 = new Answer(2L,"OPP là một phương thức lập trình mô phỏng các sự vật, sự việc trong cuộc sống",question1,Boolean.TRUE);
         Answer ans3 = new Answer(3L,"OPP là ..... ",question1,Boolean.FALSE);
 
-        
+
 
         Exam exam1 = new Exam(1,"004", "A half of semester exam ",new Date());
 
@@ -59,6 +64,11 @@ public class Program {
         ans1.printInformation();
         ans2.printInformation();
         ans3.printInformation();
+
+        Scanner sc = new Scanner(System.in);
+        InputFromConsole inputFromConsole = new InputFromConsole();
+        inputFromConsole.input7(sc);
+        sc.close();
 
     }
 }

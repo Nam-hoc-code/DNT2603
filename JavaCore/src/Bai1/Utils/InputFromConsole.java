@@ -138,7 +138,6 @@ public class InputFromConsole {
 //
     public void input7(Scanner sc) {
         System.out.println("Nhập giá trị số nguyên là số chẵn : ");
-        System.out.println("Nhập vào một số chẵn : ");
         int i = sc.nextInt();
         while (i % 2 != 0) {
             System.out.println("Vui lòng nhập vào giá trị là một số chẵn : ");
@@ -146,6 +145,7 @@ public class InputFromConsole {
         }
         System.out.println("Số chẵn là : " + i);
     }
+
 
     //
 //    Question 8:

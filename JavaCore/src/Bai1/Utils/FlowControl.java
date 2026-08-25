@@ -94,6 +94,8 @@ public class FlowControl {
         }
 
         switch (sum) {
+            case 0 : return  "Nhóm ko có thành viên";
+
             case 1:
                 return "Nhóm có một thành viên";
             case 2:
@@ -101,8 +103,9 @@ public class FlowControl {
             case 3:
                 return "Nhóm có ba thành viên";
 
+            default: return "Nhóm có nhiều thành viên";
         }
-        return null;
+
     }
 
 //Question 6:
