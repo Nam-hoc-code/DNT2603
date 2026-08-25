@@ -299,7 +299,7 @@ public void input9AddRandom(Scanner sc, FlowControl flowControl, ArrayList<Accou
 
     Random random = new Random();
 
-    int  indexGroupName = random.nextInt(groupNames.size());
+    int  indexGroupName = random.nextInt(0,groupNames.size()-1);
 
 
     Group group = new Group();

@@ -11,7 +11,6 @@ public class Department {
     }
 
     public Department( DepartmentName departmentName) {
-        this.departmentId = departmentId;
         this.departmentName =  departmentName;
     }
 
