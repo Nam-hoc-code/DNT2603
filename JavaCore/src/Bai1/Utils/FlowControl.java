@@ -242,7 +242,7 @@ public class FlowControl {
 
     public void question13For(ArrayList<Department> departments) {
         for (int i = 0; i < departments.size(); i++) {
-            if (i == 2) {
+            if (i == 1) {
                 continue;
             } else {
                 System.out.println("Thông tin department thứ " + (departments.get(i).getDepartmentId()) + 1 + " là : ");
