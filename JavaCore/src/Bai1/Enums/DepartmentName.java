@@ -5,5 +5,6 @@ public enum DepartmentName {
     Sale,
     Marketing,
     Development,
-
+    Accounting,
+    BossOfDirector,
 }
