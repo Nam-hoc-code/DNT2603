@@ -10,8 +10,13 @@ public class Account {
     private Department department;
     private Position position;
     private Date createDate;
+    private float salary1; // câu 1 bài 1
+    private Integer salary2; // câu 1 bài 3
 
-
+    public Account() {
+        position = new Position();
+        department = new Department();
+    }
 
     public Account( String userName, String fullName,String email, Department department, Position position,Date createDate) {
         this.userName = userName;
@@ -20,7 +25,7 @@ public class Account {
         this.department = new Department();
         this.position = new Position();
         this.createDate = createDate;
-    }
+    } // right
 
     public Account(Long accountId, String userName, String fullName, Date createDate) {
         this.accountId = accountId;
@@ -31,16 +36,46 @@ public class Account {
         this.createDate = createDate;
     }
 
-
-    public Account(Long accountId, String userName, String fullName,Department department, Position position, Date createDate) {
+    public Account(Long accountId, String userName, String fullName,Department department,Position position , Date createDate) {
         this.accountId = accountId;
         this.userName = userName;
         this.fullName = fullName;
         this.department = department;
         this.position = position;
         this.createDate = createDate;
+
     }
 
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
+
+
+    public void setEmail(String email) {}
+
+    public float getSalary1() { // just homework
+        return salary1;
+    }
+
+    public Integer getSalary2() { // just homework
+        return salary2;
+    }
+
+    public void setSalary1(float salary) {
+        this.salary1 = salary;
+    }
+
+    public void setSalary2(Integer salary2) {
+        this.salary2 = salary2;
+    }
 
     public Long getAccountId() {
         return accountId;

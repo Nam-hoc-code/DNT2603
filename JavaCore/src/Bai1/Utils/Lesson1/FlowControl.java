@@ -1,12 +1,10 @@
-package Bai1.Utils;
+package Bai1.Utils.Lesson1;
 
 import Bai1.Models.Account;
 import Bai1.Models.Department;
 import Bai1.Models.GroupAccount;
-import Bai1.Models.Position;
 
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 
 public class FlowControl {
     //    Exercise 1: Flow Control - Tiếp tục bài tập Day 01

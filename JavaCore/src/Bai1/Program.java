@@ -5,7 +5,7 @@ import Bai1.Enums.DepartmentName;
 import Bai1.Enums.PositionName;
 import Bai1.Enums.TypeName;
 import Bai1.Models.*;
-import Bai1.Utils.InputFromConsole;
+import Bai1.Utils.Lesson1.InputFromConsole;
 
 import java.util.ArrayList;
 import java.util.Date;
