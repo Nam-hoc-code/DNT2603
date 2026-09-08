@@ -5,6 +5,7 @@ import Bai1.Models.Group;
 import java.util.ArrayList;
 import java.util.Scanner;
 
+
 public class StringExercise {
 
     //    Exercise 4: String
@@ -23,8 +24,8 @@ public class StringExercise {
         }
 
         String words = str.replaceAll("\\s+", " ");
-
-        return words.length();
+        String[] wordsArr = words.split(" ");
+        return wordsArr.length;
     }
 
     //
@@ -82,8 +83,8 @@ public class StringExercise {
             System.out.println("UserName không được để trống!");
         }
 
-        return Character.toUpperCase(userName.charAt(0))
-                + userName.substring(1);
+        return Character.toUpperCase(userName.charAt(0)) // upperCase cho ký tự đầu
+                + userName.substring(1).toLowerCase(); // lấy các ký tự ở sau
     }
 
     //
@@ -390,10 +391,14 @@ public  void  question14String(Scanner sc) {
     }
 
     public static void main(String[] args) {
-        StringExercise stringExercise = new StringExercise();
+//        StringExercise stringExercise = new StringExercise();
 
         Scanner sc = new Scanner(System.in);
 
-        System.out.println(stringExercise.question3String(sc));
+//        System.out.println(stringExercise.question3String(sc));
+
+//        Character.isDigit(stringExercise.question11String(sc));
+        StringExercise stringExercise1 = new StringExercise();
+        stringExercise1.question16String(sc);
     }
 }
