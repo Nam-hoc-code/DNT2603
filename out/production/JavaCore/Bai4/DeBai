@@ -9,3 +9,5 @@ Một thư viện cần quản lý các tài liệu bao gồm Sách, Tạp chí,
       d) Tìm kiếm tài liệu theo loại: Sách, tạp chí, báo.
        e) Thoát khỏi chương trình.
 BTVN: nhớ trình theo 3 package  entity, backend, frontend,  áp dụng đủ 4 tính chất của OOP
+
+-- Thiết kế database  :

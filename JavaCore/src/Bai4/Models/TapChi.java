@@ -1,15 +1,13 @@
 package Bai4.Models;
 
-import java.time.LocalDate;
-
 public class TapChi extends TaiLieu {
     private String soPhatHanh;
-    private LocalDate thoiGianPhatHanh;
+    private Integer thangPhatHanh;
 
-    public TapChi(String maTaiLieu,  String tenNhaXuatBan, String soBanPhatHanh, String soPhatHanh, LocalDate thoiGianPhatHanh) {
-        super(maTaiLieu,tenNhaXuatBan,soBanPhatHanh);
+    public TapChi(String maTaiLieu, String tenNhaXuatBan, String soBanPhatHanh, String soPhatHanh, Integer thangPhatHanh) {
+        super(maTaiLieu, tenNhaXuatBan, soBanPhatHanh);
         this.soPhatHanh = soPhatHanh;
-        this.thoiGianPhatHanh = thoiGianPhatHanh;
+        this.thangPhatHanh = thangPhatHanh;
     }
 
     public String getSoPhatHanh() {
@@ -20,18 +18,18 @@ public class TapChi extends TaiLieu {
         this.soPhatHanh = soPhatHanh;
     }
 
-    public LocalDate getThoiGianPhatHanh() {
-        return thoiGianPhatHanh;
+    public Integer getThangPhatHanh() {
+        return thangPhatHanh;
     }
 
-    public void setThoiGianPhatHanh(LocalDate thoiGianPhatHanh) {
-        this.thoiGianPhatHanh = thoiGianPhatHanh;
+    public void setThangPhatHanh(Integer thangPhatHanh) {
+        this.thangPhatHanh = thangPhatHanh;
     }
 
     @Override
     public void printInformation() {
         super.printInformation();
         System.out.println("Số phát hành : " + soPhatHanh);
-        System.out.println("Thời gian phát hành : " + thoiGianPhatHanh);
+        System.out.println("Tháng phát hành : " + thangPhatHanh);
     }
 }
