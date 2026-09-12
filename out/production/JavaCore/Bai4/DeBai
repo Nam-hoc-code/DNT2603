@@ -11,3 +11,77 @@ Một thư viện cần quản lý các tài liệu bao gồm Sách, Tạp chí,
 BTVN: nhớ trình theo 3 package  entity, backend, frontend,  áp dụng đủ 4 tính chất của OOP
 
 -- Thiết kế database  :
+
+
+    public void hienThiThongTinTaiLieu() {
+        String query = "SELECT * FROM tai_lieu";
+
+        try (Connection connection = getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(query)) {
+
+            System.out.println("+---------------+--------------------+--------------------+--------------------+---------------------+--------------------+----------+");
+            System.out.println("|   Mã tài liệu | Tên nhà xuất bản   |    Số bản phát hành|       Số Phát Hành | Thời gian phát hành |        Tên Tác Giả | Số Trang |");
+            System.out.println("+---------------+--------------------+--------------------+--------------------+---------------------+--------------------+----------+");
+
+            while (resultSet.next()) {
+                String maTaiLieu = rsToString(resultSet.getObject("ma_tai_lieu"));
+                String tenNhaXuatBan = rsToString(resultSet.getObject("ten_nxb"));
+                String soBanPhatHanh = rsToString(resultSet.getObject("so_ban_phat_hanh"));
+                String loai = resultSet.getString("loai_tai_lieu");
+
+                String soPhatHanh = "Trống";
+                String thoiGianPhatHanh = "Trống";
+                String tenTacGia = "Trống";
+                String soTrang = "Trống";
+
+                if ("SACH".equals(loai)) {
+                    tenTacGia = rsToString(resultSet.getObject("ten_tac_gia"));
+                    soTrang = rsToString(resultSet.getObject("so_trang"));
+                } else if ("TAP_CHI".equals(loai)) {
+                    soPhatHanh = rsToString(resultSet.getObject("so_phat_hanh"));
+                    Object thang = resultSet.getObject("thang_phat_hanh");
+                    thoiGianPhatHanh = thang != null ? "Tháng " + thang : "Trống";
+                } else if ("BAO".equals(loai)) {
+                    java.sql.Timestamp ngay = resultSet.getTimestamp("ngay_phat_hanh");
+                    if (ngay != null) {
+                        thoiGianPhatHanh = ngay.toLocalDateTime().toLocalDate()
+                                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+                    }
+                }
+
+                System.out.printf(
+                        "| %-13s | %-18s | %-18s | %-18s | %-19s | %-18s | %-8s |%n",
+                        maTaiLieu,
+                        tenNhaXuatBan,
+                        soBanPhatHanh,
+                        soPhatHanh,
+                        thoiGianPhatHanh,
+                        tenTacGia,
+                        soTrang
+                );
+            }
+
+            System.out.println("+---------------+--------------------+--------------------+--------------------+---------------------+--------------------+----------+");
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
+       public boolean xoaTaiLieu(Scanner sc) {
+           System.out.println("Nhập vào mã tài liệu bạn muốn xóa : ");
+           String maTaiLieu = sc.nextLine();
+
+           String sql = "DELETE FROM tai_lieu WHERE ma_tai_lieu = ?";
+           try (Connection connection = getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+               preparedStatement.setString(1, maTaiLieu);
+               return preparedStatement.executeUpdate() > 0;
+           } catch (SQLException e) {
+               e.printStackTrace();
+               return false;
+           }
+       }}

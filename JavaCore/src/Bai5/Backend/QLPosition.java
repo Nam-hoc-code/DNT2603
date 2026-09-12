@@ -1,11 +1,26 @@
 package Bai5.Backend;
 
+import Bai5.Utils.CheckInput;
+
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.sql.Statement;
+import java.util.Scanner;
 
 public class QLPosition implements IQLPosition {
+
+    private final Scanner scanner;
+
+    public QLPosition() {
+        this.scanner = new Scanner(System.in);
+    }
+
+    public QLPosition(Scanner scanner) {
+        this.scanner = scanner;
+    }
 
     @Override
     public void hienThiTatCa() {
@@ -27,6 +42,31 @@ public class QLPosition implements IQLPosition {
                 System.out.println("Không có dữ liệu position!");
             }
 
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void xoaViTri() {
+        int id = CheckInput.nhapSoNguyen(scanner, "Nhập id_position cần xóa: ");
+
+        String sql = "{call xoaViTri(?)}";
+        try (Connection connection = ConnectDB.getConnection();
+             CallableStatement callableStatement = connection.prepareCall(sql)) {
+
+            callableStatement.setInt(1, id);
+            callableStatement.execute();
+
+            int rows = callableStatement.getUpdateCount();
+            if (rows > 0) {
+                System.out.println("Đã xóa " + rows + " vị trí!");
+            } else {
+                System.out.println("Không tìm thấy vị trí có id = " + id + "!");
+            }
+
+        } catch (SQLIntegrityConstraintViolationException e) {
+            System.out.println("Không thể xóa! Vị trí này đang gán cho account.");
         } catch (SQLException e) {
             e.printStackTrace();
         }

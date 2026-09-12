@@ -1,16 +1,14 @@
 package Bai5.Models;
 
-import Bai5.Models.Enums.DepartmentName;
-
 public class Department {
     private Integer idDepartment;
     private Integer idManager;
-    private DepartmentName departmentName;
+    private String departmentName;
     private Integer numberPeople;
 
     public Department() {}
 
-    public Department(Integer idDepartment, Integer idManager, DepartmentName departmentName, Integer numberPeople) {
+    public Department(Integer idDepartment, Integer idManager, String departmentName, Integer numberPeople) {
         this.idDepartment = idDepartment;
         this.idManager = idManager;
         this.departmentName = departmentName;
@@ -33,11 +31,11 @@ public class Department {
         this.idManager = idManager;
     }
 
-    public DepartmentName getDepartmentName() {
+    public String getDepartmentName() {
         return departmentName;
     }
 
-    public void setDepartmentName(DepartmentName departmentName) {
+    public void setDepartmentName(String departmentName) {
         this.departmentName = departmentName;
     }
 
@@ -54,7 +52,7 @@ public class Department {
         return "Department{" +
                 "idDepartment=" + idDepartment +
                 ", idManager=" + idManager +
-                ", departmentName=" + departmentName +
+                ", departmentName='" + departmentName + '\'' +
                 ", numberPeople=" + numberPeople +
                 '}';
     }

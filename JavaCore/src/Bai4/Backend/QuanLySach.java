@@ -55,7 +55,7 @@ public class QuanLySach {
                 soTrang = Integer.parseInt(sc.nextLine());
                 break;
 
-            case 2: // Tạp chí
+            case 2: // Tạp c    hí
                 loaiTaiLieu = "TAP_CHI";
                 System.out.println("Nhập mã tạp chí : ");
                 maTaiLieu = sc.nextLine();
@@ -91,7 +91,7 @@ public class QuanLySach {
         }
 
         String sql = "INSERT INTO tai_lieu (ma_tai_lieu, ten_nxb, so_ban_phat_hanh, loai_tai_lieu, ten_tac_gia, so_trang, so_phat_hanh, thang_phat_hanh, ngay_phat_hanh) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -242,6 +242,31 @@ public class QuanLySach {
         }
     }
 
+    public boolean suaTaiLieu(Scanner sc) {
+        String sql = "UPDATE tai_lieu SET ten_nha_xuat_ban = ? WHERE ma_tai_lieu = ?";
+
+        System.out.println("Nhập vào mã tài liệu muốn đổi tên nhà xuất bản: ");
+        String maTaiLieu = sc.nextLine();
+
+        System.out.println("Nhập vào tên nhà xuất bản muốn đổi: ");
+        String nhaXuatBan = sc.nextLine();
+
+        try (Connection connection = getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setObject(1, nhaXuatBan);
+            preparedStatement.setObject(2, maTaiLieu);
+
+            return preparedStatement.executeUpdate() > 0;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
+
     private void printHeader() {
          System.out.println("+---------------+--------------------+--------------------+--------------------+---------------------+--------------------+----------+");
         System.out.println("|   Mã tài liệu | Tên nhà xuất bản   |    Số bản phát hành|       Số Phát Hành | Thời gian phát hành |        Tên Tác Giả | Số Trang |");
@@ -335,6 +360,10 @@ public class QuanLySach {
                     break;
 
                 case 5:
+                    q.suaTaiLieu(sc);
+                    break;
+
+                case 6:
                     System.out.println("Tạm biệt!");
                     return;
 

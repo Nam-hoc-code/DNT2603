@@ -68,3 +68,20 @@ BTVN: nhớ trình theo 3 package  entity, backend, frontend,  áp dụng đủ 
             e.printStackTrace();
         }
     }
+
+
+
+       public boolean xoaTaiLieu(Scanner sc) {
+           System.out.println("Nhập vào mã tài liệu bạn muốn xóa : ");
+           String maTaiLieu = sc.nextLine();
+
+           String sql = "DELETE FROM tai_lieu WHERE ma_tai_lieu = ?";
+           try (Connection connection = getConnection();
+                PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+               preparedStatement.setString(1, maTaiLieu);
+               return preparedStatement.executeUpdate() > 0;
+           } catch (SQLException e) {
+               e.printStackTrace();
+               return false;
+           }
+       }}
