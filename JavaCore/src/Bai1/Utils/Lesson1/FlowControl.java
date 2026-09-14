@@ -122,7 +122,7 @@ public class FlowControl {
                 case 0:
                     return "Ko tham gia bất kỳ nhóm  nào";
 
-                case 1, 2:
+                case 1:
                     return "Group của nhân viên này là Java Fresher, C# Fresher";
 
                 case 3:

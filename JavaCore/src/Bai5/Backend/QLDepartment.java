@@ -1,6 +1,7 @@
 package Bai5.Backend;
 
 import Bai5.Utils.CheckInput;
+import Bai5.Utils.JDBCUtils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -26,24 +27,28 @@ public class QLDepartment implements IQLDepartment {
     public void hienThiTatCa() {
         String sql = "SELECT id_department, id_manager, department_name, number_people FROM department";
 
-        try (Connection connection = ConnectDB.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
 
-            printHeader();
-            boolean found = false;
-            while (resultSet.next()) {
-                printDongTaiLieu(resultSet);
-                found = true;
+                printHeader();
+                boolean found = false;
+                while (resultSet.next()) {
+                    printDongTaiLieu(resultSet);
+                    found = true;
+                }
+                printFooter();
+
+                if (!found) {
+                    System.out.println("Không có dữ liệu department!");
+                }
             }
-            printFooter();
-
-            if (!found) {
-                System.out.println("Không có dữ liệu department!");
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -52,23 +57,27 @@ public class QLDepartment implements IQLDepartment {
         int id = CheckInput.nhapSoNguyen(scanner, "Nhập id_department cần xóa: ");
 
         String sql = "{call xoaPhong(?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, id);
-            callableStatement.execute();
+                callableStatement.setInt(1, id);
+                callableStatement.execute();
 
-            int rows = callableStatement.getUpdateCount();
-            if (rows > 0) {
-                System.out.println("Đã xóa " + rows + " phòng ban!");
-            } else {
-                System.out.println("Không tìm thấy phòng ban có id = " + id + "!");
+                int rows = callableStatement.getUpdateCount();
+                if (rows > 0) {
+                    System.out.println("Đã xóa " + rows + " phòng ban!");
+                } else {
+                    System.out.println("Không tìm thấy phòng ban có id = " + id + "!");
+                }
             }
-
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Không thể xóa! Phòng này còn account đang tham chiếu.");
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -78,22 +87,26 @@ public class QLDepartment implements IQLDepartment {
         String tenMoi = CheckInput.nhapChuoiKhongRong(scanner, "Nhập tên phòng mới: ");
 
         String sql = "{call capNhatTenPhong(?,?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, id);
-            callableStatement.setString(2, tenMoi);
-            callableStatement.execute();
+                callableStatement.setInt(1, id);
+                callableStatement.setString(2, tenMoi);
+                callableStatement.execute();
 
-            int rows = callableStatement.getUpdateCount();
-            if (rows > 0) {
-                System.out.println("Đã cập nhật tên phòng id = " + id + "!");
-            } else {
-                System.out.println("Không tìm thấy phòng ban có id = " + id + "!");
+                int rows = callableStatement.getUpdateCount();
+                if (rows > 0) {
+                    System.out.println("Đã cập nhật tên phòng id = " + id + "!");
+                } else {
+                    System.out.println("Không tìm thấy phòng ban có id = " + id + "!");
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -105,20 +118,24 @@ public class QLDepartment implements IQLDepartment {
         int soNguoi = CheckInput.nhapSoNguyen(scanner, "Nhập số người: ");
 
         String sql = "{call themPhong(?,?,?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setObject(1, idManager == 0 ? null : idManager);
-            callableStatement.setString(2, tenPhong);
-            callableStatement.setInt(3, soNguoi);
-            callableStatement.execute();
+                callableStatement.setObject(1, idManager == 0 ? null : idManager);
+                callableStatement.setString(2, tenPhong);
+                callableStatement.setInt(3, soNguoi);
+                callableStatement.execute();
 
-            System.out.println("Đã thêm phòng ban mới!");
-
+                System.out.println("Đã thêm phòng ban mới!");
+            }
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Không thể thêm! id_manager không tồn tại.");
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 

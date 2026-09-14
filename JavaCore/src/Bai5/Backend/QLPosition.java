@@ -1,6 +1,7 @@
 package Bai5.Backend;
 
 import Bai5.Utils.CheckInput;
+import Bai5.Utils.JDBCUtils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -26,24 +27,28 @@ public class QLPosition implements IQLPosition {
     public void hienThiTatCa() {
         String sql = "SELECT id_position, position_name FROM position";
 
-        try (Connection connection = ConnectDB.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
 
-            printHeader();
-            boolean found = false;
-            while (resultSet.next()) {
-                printDongTaiLieu(resultSet);
-                found = true;
+                printHeader();
+                boolean found = false;
+                while (resultSet.next()) {
+                    printDongTaiLieu(resultSet);
+                    found = true;
+                }
+                printFooter();
+
+                if (!found) {
+                    System.out.println("Không có dữ liệu position!");
+                }
             }
-            printFooter();
-
-            if (!found) {
-                System.out.println("Không có dữ liệu position!");
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -52,23 +57,27 @@ public class QLPosition implements IQLPosition {
         int id = CheckInput.nhapSoNguyen(scanner, "Nhập id_position cần xóa: ");
 
         String sql = "{call xoaViTri(?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, id);
-            callableStatement.execute();
+                callableStatement.setInt(1, id);
+                callableStatement.execute();
 
-            int rows = callableStatement.getUpdateCount();
-            if (rows > 0) {
-                System.out.println("Đã xóa " + rows + " vị trí!");
-            } else {
-                System.out.println("Không tìm thấy vị trí có id = " + id + "!");
+                int rows = callableStatement.getUpdateCount();
+                if (rows > 0) {
+                    System.out.println("Đã xóa " + rows + " vị trí!");
+                } else {
+                    System.out.println("Không tìm thấy vị trí có id = " + id + "!");
+                }
             }
-
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Không thể xóa! Vị trí này đang gán cho account.");
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 

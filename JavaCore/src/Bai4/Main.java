@@ -75,13 +75,13 @@
 //        }
 //    }
 //}
-public static void main(String[] args) {
-    Integer i =  null;
-
-    String s = String.valueOf(i);
-    if ( s instanceof String) {
-        System.out.println("Nó là String");
-    }
-
-
-}
+//public static void main(String[] args) {
+//    Integer i =  null;
+//
+//    String s = String.valueOf(i);
+//    if ( s instanceof String) {
+//        System.out.println("Nó là String");
+//    }
+//
+//
+//}

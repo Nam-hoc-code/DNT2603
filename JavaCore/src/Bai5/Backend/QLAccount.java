@@ -1,6 +1,7 @@
 package Bai5.Backend;
 
 import Bai5.Utils.CheckInput;
+import Bai5.Utils.JDBCUtils;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -30,24 +31,29 @@ public class QLAccount implements IQLAccount {
                 "from account acc " +
                 "left join position pos on acc.id_position = pos.id_position " +
                 "left join department dep on acc.id_department = dep.id_department";
-        try (Connection connection = ConnectDB.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
 
-            printHeader();
-            boolean found = false;
-            while (resultSet.next()) {
-                printDongTaiLieu(resultSet);
-                found = true;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
+
+                printHeader();
+                boolean found = false;
+                while (resultSet.next()) {
+                    printDongTaiLieu(resultSet);
+                    found = true;
+                }
+                printFooter();
+
+                if (!found) {
+                    System.out.println("Không có dữ liệu account!");
+                }
             }
-            printFooter();
-
-            if (!found) {
-                System.out.println("Không có dữ liệu account!");
-            }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -56,23 +62,27 @@ public class QLAccount implements IQLAccount {
         int id = CheckInput.nhapSoNguyen(scanner, "Nhập id_account cần xóa: ");
 
         String sql = "{call xoaTaiKhoan(?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, id);
-            callableStatement.execute();
+                callableStatement.setInt(1, id);
+                callableStatement.execute();
 
-            int rows = callableStatement.getUpdateCount();
-            if (rows > 0) {
-                System.out.println("Đã xóa " + rows + " account!");
-            } else {
-                System.out.println("Không tìm thấy account có id = " + id + "!");
+                int rows = callableStatement.getUpdateCount();
+                if (rows > 0) {
+                    System.out.println("Đã xóa " + rows + " account!");
+                } else {
+                    System.out.println("Không tìm thấy account có id = " + id + "!");
+                }
             }
-
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Không thể xóa! Account này đang là quản lý của một phòng ban.");
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -82,22 +92,26 @@ public class QLAccount implements IQLAccount {
         String tenMoi = CheckInput.nhapChuoiKhongRong(scanner, "Nhập tên mới: ");
 
         String sql = "{call capNhatTenTaiKhoan(?,?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setInt(1, id);
-            callableStatement.setString(2, tenMoi);
-            callableStatement.execute();
+                callableStatement.setInt(1, id);
+                callableStatement.setString(2, tenMoi);
+                callableStatement.execute();
 
-            int rows = callableStatement.getUpdateCount();
-            if (rows > 0) {
-                System.out.println("Đã cập nhật tên account id = " + id + "!");
-            } else {
-                System.out.println("Không tìm thấy account có id = " + id + "!");
+                int rows = callableStatement.getUpdateCount();
+                if (rows > 0) {
+                    System.out.println("Đã cập nhật tên account id = " + id + "!");
+                } else {
+                    System.out.println("Không tìm thấy account có id = " + id + "!");
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -112,23 +126,27 @@ public class QLAccount implements IQLAccount {
         int idDepartment = chonPhong();
 
         String sql = "{call themTaiKhoan(?,?,?,?,?,?)}";
-        try (Connection connection = ConnectDB.getConnection();
-             CallableStatement callableStatement = connection.prepareCall(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
 
-            callableStatement.setString(1, name);
-            callableStatement.setString(2, location);
-            callableStatement.setString(3, accountName);
-            callableStatement.setString(4, password);
-            callableStatement.setInt(5, idPosition);
-            callableStatement.setInt(6, idDepartment);
-            callableStatement.execute();
+                callableStatement.setString(1, name);
+                callableStatement.setString(2, location);
+                callableStatement.setString(3, accountName);
+                callableStatement.setString(4, password);
+                callableStatement.setInt(5, idPosition);
+                callableStatement.setInt(6, idDepartment);
+                callableStatement.execute();
 
-            System.out.println("Đã thêm account mới!");
-
+                System.out.println("Đã thêm account mới!");
+            }
         } catch (SQLIntegrityConstraintViolationException e) {
             System.out.println("Không thể thêm! Vị trí hoặc phòng ban không tồn tại.");
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
     }
 
@@ -137,18 +155,22 @@ public class QLAccount implements IQLAccount {
         List<Integer> ids = new ArrayList<>();
         String sql = "SELECT id_position, position_name FROM position";
 
-        try (Connection connection = ConnectDB.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
 
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id_position");
-                ids.add(id);
-                System.out.println("  " + id + ". " + resultSet.getString("position_name"));
+                while (resultSet.next()) {
+                    int id = resultSet.getInt("id_position");
+                    ids.add(id);
+                    System.out.println("  " + id + ". " + resultSet.getString("position_name"));
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
 
         while (true) {
@@ -165,18 +187,22 @@ public class QLAccount implements IQLAccount {
         List<Integer> ids = new ArrayList<>();
         String sql = "SELECT id_department, department_name FROM department";
 
-        try (Connection connection = ConnectDB.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
 
-            while (resultSet.next()) {
-                int id = resultSet.getInt("id_department");
-                ids.add(id);
-                System.out.println("  " + id + ". " + resultSet.getString("department_name"));
+                while (resultSet.next()) {
+                    int id = resultSet.getInt("id_department");
+                    ids.add(id);
+                    System.out.println("  " + id + ". " + resultSet.getString("department_name"));
+                }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
         }
 
         while (true) {

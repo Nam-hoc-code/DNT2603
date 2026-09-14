@@ -3,7 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/DNT2603.iml" filepath="$PROJECT_DIR$/.idea/DNT2603.iml" />
-      <module fileurl="file://$PROJECT_DIR$/JavaCore/JavaCore.iml" filepath="$PROJECT_DIR$/JavaCore/JavaCore.iml" />
+      <module fileurl="file://$PROJECT_DIR$/JavaCore/DemoMaven (1).iml" filepath="$PROJECT_DIR$/JavaCore/DemoMaven (1).iml" />
     </modules>
   </component>
 </project>
