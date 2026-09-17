@@ -1,207 +1,226 @@
 package Bai6.Backend.reponsitory.Implement;
 
-import Bai5.Utils.CheckInput;
 import Bai6.Backend.reponsitory.IQLTVResponsitory;
+import Bai6.Entity.Account;
+import Bai6.Entity.Department;
+import Bai6.Entity.Enums.PositionName;
+import Bai6.Entity.Position;
 import Bai6.Utils.JDBCUtils;
 
 import java.sql.*;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
 
+/**
+ * Repository: tầng DUY NHẤT làm việc với Database.
+ * Không nhập liệu, không in kết quả -> chỉ truy vấn và TRẢ DỮ LIỆU lên tầng trên.
+ */
 public class QLTVResponsitory implements IQLTVResponsitory {
 
-    // convert date to String or return "Trống"
-    public String rvToString (Object value) {
-        return value != null ?  String.valueOf(value) : "Trống" ;
+/**
+     * Map 1 dòng kết quả (có join position + department) sang entity Account.
+     * Giúp hienThi() và timKiem() dùng chung, tránh viết lặp.
+     */
+    private Account mapAccount(ResultSet resultSet) throws SQLException {
+        Account account = new Account();
+        account.setIdAccount(resultSet.getInt("id_account"));
+        account.setName(resultSet.getString("name"));
+        account.setLocation(resultSet.getString("location"));
+        account.setAccountName(resultSet.getString("account_name"));
+        account.setPassword(resultSet.getString("password"));
+        // Khóa ngoại dạng đối tượng: đóng gói thành Position / Department nếu cột không NULL
+        Integer idPosition = (Integer) resultSet.getObject("id_position");
+        if (idPosition != null) {
+            // position_name là ENUM('DEV','MANAGER','LEAD','TESTER') -> map sang enum PositionName
+            account.setPosition(new Position(idPosition,
+                    PositionName.valueOf(resultSet.getString("position_name"))));
+        }
+        Integer idDepartment = (Integer) resultSet.getObject("id_department");
+        if (idDepartment != null) {
+            account.setDepartment(new Department(idDepartment, null,
+                    resultSet.getString("department_name"), null));
+        }
+        return account;
     }
 
     @Override
-    public void hienThi() {
+    public List<Account> hienThi() {
+        // JOIN để lấy kèm tên vị trí (position_name) và phòng ban (department_name)
         String sql = "select acc.*, pos.position_name, dep.department_name " +
                 "from account acc " +
                 "left join position pos on acc.id_position = pos.id_position " +
                 "left join department dep on acc.id_department = dep.id_department";
+        List<Account> accounts = new ArrayList<>(); // danh sách kết quả trả về
         Connection connection = null;
         try {
-            connection = JDBCUtils.getConnection(); // -> try ngoài để kiểm tra kết nối
-//            System.out.println("Kết nối thành công!"); bỏ comment để test kêt nối
+            connection = JDBCUtils.getConnection(); // mở kết nối DB
             try (Statement statement = connection.createStatement();
-                 ResultSet resultSet = statement.executeQuery(sql)
-            ) {
-                System.out.println("+------+--------------------+--------------------+------------------+-----------+-----------------+--------------------+");
-                System.out.println("|  ID  |        Tên         |      Location      |   Account Name   | Password  |    Position     |    Department      |");
-                System.out.println("+------+--------------------+--------------------+------------------+-----------+-----------------+--------------------+");
-
+                 ResultSet resultSet = statement.executeQuery(sql)) {
+                // Duyệt từng dòng kết quả và revert vào entity Account
                 while (resultSet.next()) {
-                    String idAccount = rvToString(resultSet.getObject("id_account"));
-                    String name = rvToString(resultSet.getObject("name"));
-                    String location = rvToString(resultSet.getObject("location"));
-                    String accountName = rvToString(resultSet.getObject("account_name"));
-                    String password = rvToString(resultSet.getObject("password"));
-                    String positionName = rvToString(resultSet.getObject("position_name"));
-                    String departmentName = rvToString(resultSet.getObject("department_name"));
-
-                    System.out.printf("| %-4s | %-18s | %-18s | %-16s | %-9s | %-15s | %-20s |%n",
-                            idAccount, name, location, accountName, password, positionName, departmentName);
-
+                    accounts.add(mapAccount(resultSet));
                 }
-                System.out.println("+------+--------------------+--------------------+------------------+-----------+-----------------+--------------------+");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection); // luôn đóng kết nối
+        }
+        return accounts;
+    }
 
+    @Override
+    public List<Account> timKiem(String keyword) {
+        // Dùng PreparedStatement + placeholder ? để tránh SQL injection
+        String sql = "select acc.*, pos.position_name, dep.department_name " +
+                "from account acc " +
+                "left join position pos on acc.id_position = pos.id_position " +
+                "left join department dep on acc.id_department = dep.id_department " +
+                "where acc.name like ?";
+        List<Account> accounts = new ArrayList<>();
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setString(1, "%" + keyword + "%"); // pattern tìm tên chứa từ khóa
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                        accounts.add(mapAccount(resultSet));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return accounts;
+    }
+
+    @Override
+    public boolean them(Account account) {
+        // Gọi stored procedure themTaiKhoan với đúng 6 tham số lấy từ entity Account
+        String sql = "{call themTaiKhoan(?,?,?,?,?,?)}";
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
+                callableStatement.setString(1, account.getName());
+                callableStatement.setString(2, account.getLocation());
+                callableStatement.setString(3, account.getAccountName());
+                callableStatement.setString(4, account.getPassword());
+                callableStatement.setInt(5, account.getPosition().getIdPosition());       // lấy id từ đối tượng Position
+                callableStatement.setInt(6, account.getDepartment().getIdDepartment());   // lấy id từ đối tượng Department
+                callableStatement.execute();
+                return true; // thêm thành công
+            }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // FK: id_position / id_department không tồn tại trong DB -> thêm thất bại
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public boolean sua(int idAccount, String newName) {
+        // Gọi stored procedure capNhatTenTaiKhoan(id, tên mới)
+        String sql = "{call capNhatTenTaiKhoan(?,?)}";
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
+                callableStatement.setInt(1, idAccount);
+                callableStatement.setString(2, newName);
+                callableStatement.execute();
+                // getUpdateCount() = số dòng bị ảnh hưởng; > 0 nghĩa là tìm thấy id cần sửa
+                return callableStatement.getUpdateCount() > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public boolean xoa(int idAccount) {
+        // Gọi stored procedure xoaTaiKhoan(id)
+        String sql = "{call xoaTaiKhoan(?)}";
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (CallableStatement callableStatement = connection.prepareCall(sql)) {
+                callableStatement.setInt(1, idAccount);
+                callableStatement.execute();
+                return callableStatement.getUpdateCount() > 0;
+            }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // Account đang là quản lý phòng ban -> vi phạm khóa ngoại, không xóa được
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public List<Position> getPositions() {
+        // Lấy toàn bộ vị trí từ DB để Frontend hiển thị menu chọn (không hardcode)
+        String sql = "select id_position, position_name from `position` order by id_position";
+        List<Position> positions = new ArrayList<>();
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
+                while (resultSet.next()) {
+                    // position_name là ENUM('DEV','MANAGER','LEAD','TESTER') -> map sang enum PositionName
+                    positions.add(new Position(
+                            resultSet.getInt("id_position"),
+                            PositionName.valueOf(resultSet.getString("position_name"))
+                    ));
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {
             JDBCUtils.closeConnection(connection);
         }
-
-
+        return positions;
     }
-
 
     @Override
-    public void them() {
-        Scanner scanner = new Scanner(System.in);
-        String name = CheckInput.nhapChuoiKhongRong(scanner, "Nhập tên: ");
-        String location = CheckInput.nhapChuoiKhongRong(scanner, "Nhập nơi ở: ");
-        String accountName = CheckInput.nhapChuoiKhongRong(scanner, "Nhập tên tài khoản: ");
-        String password = CheckInput.nhapChuoiKhongRong(scanner, "Nhập mật khẩu: ");
-        int idPosition = CheckInput.nhapSoNguyen(scanner, "Nhập id_position: ");
-        int idDepartment = CheckInput.nhapSoNguyen(scanner, "Nhập id_department: ");
-        String sql = " {call themTaiKhoan(?,?,?,?,?,?) }";
+    public List<Department> getDepartments() {
+        // Lấy toàn bộ phòng ban từ DB để Frontend hiển thị menu chọn (không hardcode)
+        String sql = "select id_department, department_name from department order by id_department";
+        List<Department> departments = new ArrayList<>();
         Connection connection = null;
         try {
             connection = JDBCUtils.getConnection();
-            try ( CallableStatement callableStatement = connection.prepareCall(sql) ) {
-                callableStatement.setString(1, name);
-                callableStatement.setString(2, location);
-                callableStatement.setString(3, accountName);
-                callableStatement.setString(4, password);
-                callableStatement.setInt(5, idPosition);
-                callableStatement.setInt(6, idDepartment);
-
-                callableStatement.execute();
-                System.out.println("Đã thêm account mới!");
-            }
-
-
-            }
-            catch (SQLIntegrityConstraintViolationException e) {
-                System.out.println("Ko thể thêm ! Vị trí hoặc phòng ban không tồn tại");
-
-            }
-            catch (SQLException e) {
-            e.printStackTrace();
-            }
-            finally {
-            JDBCUtils.closeConnection(connection);
-        }
-    }
-
-
-    public void sua() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Nhập vào id Account bạn muốn sửa tên : ");
-        String idAccount = scanner.nextLine();
-        System.out.println("Nhập tên bạn muốn sửa : ");
-        String nameAccount = scanner.nextLine();
-        String sql = "{call capNhatTenTaiKhoan(?,?)}";
-        Connection connection = null;
-        try {
-            connection = JDBCUtils.getConnection();
-            try (CallableStatement callableStatement = connection.prepareCall(sql) ) {
-                callableStatement.setString(1, idAccount);
-                callableStatement.setString(2, nameAccount);
-                callableStatement.execute();
-                int rows = callableStatement.getUpdateCount();
-                if ( rows > 0) {
-                    System.out.println("Đã cập nhật tên tài khoản có id " + idAccount + "!");
-                }
-                else {
-                    System.out.println("Việc cập nhật ko thành công !");
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-    public void xoa() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Nhập vào id account muốn xóa : ");
-
-        int idAccount = scanner.nextInt();
-        Connection connection = null;
-
-        try { // kiểm tra kết nối với db
-            connection =  JDBCUtils.getConnection();
-            try (
-                    CallableStatement callableStatement = connection.prepareCall("{call xoaTaiKhoan(?)}")
-            ) {
-                    callableStatement.setInt(1, idAccount);
-                    callableStatement.execute();
-
-                    int rows = callableStatement.getUpdateCount(); // kiểm tra nếu
-                if (rows > 0) {
-                    System.out.println("Đã xóa " +rows + " account " );
-                }
-                else {
-                    System.out.println("Không tìm thấy account có id trên");
-                }
-            }
-            catch (SQLIntegrityConstraintViolationException e) {
-                System.out.println("Không thể xóa ! Account này đang là quản lý của một phòng ban. ");
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        finally {
-            JDBCUtils.closeConnection(connection);
-        }
-    }
-
-    public void timKiem() {
-        Scanner scanner = new Scanner(System.in);
-        String sql = "select acc.*, pos.position_name, dep.department_name " +
-                "from account acc " +
-                "left join position pos on acc.id_position = pos.id_position " +
-                "left join department dep on acc.id_department = dep.id_department " +
-                "where acc.name like ?";
-        System.out.println("Nhập tên của account bạn muốn tìm : ");
-        String nameAccount = scanner.nextLine();
-        Connection connection = null;
-        try {
-
-            connection = JDBCUtils.getConnection();
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
-                String keyWord = "%" + nameAccount + "%";
-                preparedStatement.setString(1, keyWord);
-
-                ResultSet resultSet =  preparedStatement.executeQuery();
-                boolean found = false;
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(sql)) {
                 while (resultSet.next()) {
-                    found = true;
-                    String idAccount  = rvToString(resultSet.getObject("id_account"));
-                    String name       = rvToString(resultSet.getObject("name"));
-                    String location   = rvToString(resultSet.getObject("location"));
-                    String accountName = rvToString(resultSet.getObject("account_name"));
-                    String password   = rvToString(resultSet.getObject("password"));
-                    String positionName   = rvToString(resultSet.getObject("position_name"));
-                    String departmentName = rvToString(resultSet.getObject("department_name"));
-
-                    System.out.printf("| %-4s | %-18s | %-18s | %-16s | %-9s | %-15s | %-20s |%n",
-                            idAccount, name, location, accountName, password, positionName, departmentName);
-
-                }
-                if ( !found ) {
-                    System.out.println("Không tìm thấy account. ");
+                    // id_manager, number_people không cần hiển thị trong menu chọn -> để null
+                    departments.add(new Department(
+                            resultSet.getInt("id_department"),
+                            null,
+                            resultSet.getString("department_name"),
+                            null
+                    ));
                 }
             }
-        } catch (Exception e) {
+        } catch (SQLException e) {
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             JDBCUtils.closeConnection(connection);
-
         }
+        return departments;
     }
-
 }

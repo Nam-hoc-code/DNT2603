@@ -13,6 +13,9 @@ public class Account {
     private String location;
     private String accountName;
     private String password;
-    private Integer idPosition;
-    private Integer idDepartment;
+    // Khóa ngoại là ĐỐI TƯỢNG phù hợp (object reference) thay vì id thô:
+    // - position   : tương ứng cột id_position, luôn giữ luôn tên vị trí (positionName)
+    // - department : tương ứng cột id_department, luôn giữ luôn tên phòng ban (departmentName)
+    private Position position;
+    private Department department;
 }

@@ -1,17 +1,24 @@
 package Bai6.Backend.service;
 
-import Bai1.Models.Account;
+import Bai6.Entity.Account;
+import Bai6.Entity.Department;
+import Bai6.Entity.Position;
 
 import java.util.List;
 
 public interface IQLTVService {
-    public void hienThi();
 
-    public void them();
+    List<Account> hienThi();
 
-    public void sua();
+    List<Account> timKiem(String keyword);
 
-    public void xoa();
+    boolean them(Account account);
 
-    public void timKiem();
+    boolean sua(int idAccount, String newName);
+
+    boolean xoa(int idAccount);
+
+    List<Position> getPositions();
+
+    List<Department> getDepartments();
 }
