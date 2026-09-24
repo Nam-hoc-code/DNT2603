@@ -71,7 +71,7 @@ public class QLTVService implements IQLTVService {
         if (!file.exists()) {
             return "File không tồn tại";
         }
-        if (!path.toLowerCase().endsWith(".csv")) {
+        if (!path.endsWith(".csv")) {
             return "Định dạng file không phù hợp cần .csv";
         }
 
