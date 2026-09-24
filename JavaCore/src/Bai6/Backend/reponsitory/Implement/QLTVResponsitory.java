@@ -223,4 +223,124 @@ public class QLTVResponsitory implements IQLTVResponsitory {
         }
         return departments;
     }
+
+    @Override
+    public String getUserName(int userId) {
+        Connection connection = null;
+        String query = " select  acc.account_name from account acc where id_account = ? ";
+        String accountName = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setInt(1, userId);
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                while (resultSet.next()) {
+                    accountName = resultSet.getString("account_name");
+                }
+
+            }
+        }
+        catch (SQLException e) {
+            e.printStackTrace();
+        }
+        finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return accountName;
+    }
+
+    @Override
+    public boolean isNameDuplicated(int userId,String name) { // kiểm tra tên có trùng với account khác không
+        String query = "select count(*) from account where name = ? and id_account != ?";
+        boolean duplicated = false;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.setInt(2, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        duplicated = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return duplicated;
+    }
+
+    @Override
+    public boolean isOldName(int userId,String name) { // kiểm tra tên có trùng với tên cũ (chính account) không
+        String query = "select count(*) from account where name = ? and id_account = ?";
+        boolean duplicated = false;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.setInt(2, userId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        duplicated = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return duplicated;
+    }
+
+    @Override
+    public boolean isNameExist(String name) { // kiểm tra tên (cột name) đã tồn tại chưa
+        String query = "select count(*) from account where name = ?";
+        boolean duplicated = false;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, name);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        duplicated = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return duplicated;
+    }
+
+    @Override
+    public boolean isAccountNameExist(String accountName) { // kiểm tra account_name đã tồn tại chưa
+        String query = "select count(*) from account where account_name = ?";
+        boolean duplicated = false;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, accountName);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        duplicated = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return duplicated;
+    }
 }

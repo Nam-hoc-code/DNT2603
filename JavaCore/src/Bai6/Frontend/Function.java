@@ -74,10 +74,10 @@ public class Function {
     // ===== 2. Thêm account =====
     public void them() {
         // --- Nhập + validate các trường cơ bản ---
-        String name = CheckInput.nhapChuoiKhongRong(sc, "Nhap ten: ");
-        String location = CheckInput.nhapChuoiKhongRong(sc, "Nhap noi o: ");
-        String accountName = nhapTenTaiKhoan(); // validate: 6 - 20 ký tự
-        String password = nhapMatKhau();        // validate: tối thiểu 6 ký tự
+        String name = nhapTen();                 // validate: 2 - 30 ký tự + không trùng trong DB
+        String location = nhapNoiOi();           // validate: không trống, tối đa 50 ký tự
+        String accountName = nhapTenTaiKhoan();  // validate: 6 - 20 ký tự + không trùng trong DB
+        String password = nhapMatKhau();         // validate: tối thiểu 8 ký tự + đủ mạnh
 
         // --- Chọn vị trí & phòng ban LẤY TỪ DB (không hardcode) ---
         int idPosition = chonViTri();
@@ -108,8 +108,24 @@ public class Function {
             System.out.println("ID phai la so nguyen duong!");
             return;
         }
-        String newName = CheckInput.nhapChuoiKhongRong(sc, "Nhap ten ban muon sua: ");
+        if (CheckInput.checkExistIdUserName(id)) {
+            System.out.println("ID không tồn tại trong cơ sở dữ liệu ");
+            return;
+        }
+        String newName = null;
+        while (true) {
+            newName = CheckInput.nhapChuoiKhongRong(sc, "Nhap ten ban muon sua: ");
+
+            if (CheckInput.checkOldName(id, newName)) {
+                System.out.println("Tên đang trùng với giá trị cũ ");
+            } else if (CheckInput.checkExistUserName(id, newName)) {
+                System.out.println("Tên trùng với một account khác trong DB");
+            } else {
+                break;
+            }
+        }
         boolean success = qlTVController.suaAccount(id, newName);
+
         if (success) {
             System.out.println("Da cap nhat ten tai khoan co id " + id + "!");
         } else {
@@ -154,9 +170,10 @@ public class Function {
             System.out.println("3. Sua Ten Account.");
             System.out.println("4. Xoa Account.");
             System.out.println("5. Tim kiem Account.");
-            System.out.println("6. Thoat.");
+            System.out.println("6. Import csv file");
+            System.out.println("7. Thoat.");
 
-            int choice = CheckInput.nhapSoTrongKhoang(sc, "Moi ban chon: ", 1, 6);
+            int choice = CheckInput.nhapSoTrongKhoang(sc, "Moi ban chon: ", 1, 7);
 
             switch (choice) {
                 case 1:
@@ -174,7 +191,10 @@ public class Function {
                 case 5:
                     this.timKiem();
                     break;
-                case 6:
+                case 6 :
+                    System.out.println(this.importCsv());
+                    break;
+                case 7:
                     System.out.println("Tam biet!");
                     return;
             }
@@ -183,25 +203,54 @@ public class Function {
 
     // ===== Các hàm nhập + validate riêng =====
 
-    // Tên tài khoản phải có độ dài 6 - 20 ký tự
+    // Tên người dùng: 2 - 30 ký tự + KHÔNG trùng với tên bất kỳ account nào trong DB
+    private String nhapTen() {
+        while (true) {
+            String value = CheckInput.nhapChuoiKhongRong(sc, "Nhap ten (2-30 ky tu): ");
+            if (!CheckInput.isTenHopLe(value)) {
+                System.out.println("Ten phai tu 2 - 30 ky tu, nhap lai!");
+                continue;
+            }
+            if (CheckInput.checkNameExist(value.trim())) {
+                System.out.println("Ten da ton tai trong DB, nhap lai!");
+                continue;
+            }
+            return value.trim();
+        }
+    }
+
+    // Nơi ở: không trống, tối đa 50 ký tự
+    private String nhapNoiOi() {
+        while (true) {
+            String value = CheckInput.nhapChuoiKhongRong(sc, "Nhap noi o (toi da 50 ky tu): ");
+            if (CheckInput.isNoiOiHopLe(value)) {
+                return value.trim();
+            }
+            System.out.println("Noi o khong duoc qua 50 ky tu, nhap lai!");
+        }
+    }
+
+    // Tên tài khoản: 6 - 20 ký tự + KHÔNG trùng với account_name bất kỳ account nào trong DB
     private String nhapTenTaiKhoan() {
         while (true) {
             String value = CheckInput.nhapChuoiKhongRong(sc, "Nhap ten tai khoan (6-20 ky tu): ");
-            if (value.length() >= 6 && value.length() <= 20) {
-                return value;
+            if (!CheckInput.isAccountNameHopLe(value)) {
+                System.out.println("Ten tai khoan phai tu 6 - 20 ky tu, nhap lai!");
+                continue;
             }
-            System.out.println("Ten tai khoan phai tu 6 - 20 ky tu, nhap lai!");
+            if (CheckInput.checkAccountNameExist(value.trim())) {
+                System.out.println("Ten tai khoan da ton tai trong DB, nhap lai!");
+                continue;
+            }
+            return value.trim();
         }
     }
 
     // Mật khẩu phải đủ mạnh: tối thiểu 8 ký tự, có chữ thường + chữ hoa + số + ký tự đặc biệt (@$!%*?&)
-    private static final String PASSWORD_REGEX =
-            "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
-
     private String nhapMatKhau() {
         while (true) {
             String value = CheckInput.nhapChuoiKhongRong(sc, "Nhap mat khau: ");
-            if (value.matches(PASSWORD_REGEX)) {
+            if (CheckInput.isPasswordHopLe(value)) {
                 return value;
             }
             System.out.println("Mat khau phai co toi thieu 8 ky tu, gom chữ thuong, CHU HOA, chu so va ky tu dac biet (@$!%*?&)!");
@@ -237,4 +286,17 @@ public class Function {
         int choice = CheckInput.nhapSoTrongKhoang(sc, "Moi chon phong ban: ", 1, departments.size());
         return departments.get(choice - 1).getIdDepartment(); // map số chọn -> id thật trong DB
     }
+
+    // Chức năng import nhanh qua file CSV
+    private String importCsv() {
+        // đưa file csv vào thông qua 1
+        System.out.println("--- Import csv file ---");
+        System.out.println("Nhập vào đường dẫn của file csv : ");
+        String path = sc.nextLine();
+        String message = qlTVController.importCsv(path);
+        return message;
+    }
+
+
+
 }

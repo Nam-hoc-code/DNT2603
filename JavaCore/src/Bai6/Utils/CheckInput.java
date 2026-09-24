@@ -1,5 +1,8 @@
 package Bai6.Utils;
 
+import Bai6.Backend.reponsitory.IQLTVResponsitory;
+import Bai6.Backend.reponsitory.Implement.QLTVResponsitory;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -71,5 +74,72 @@ public class CheckInput {
                 System.out.println("Ngày không hợp lệ, nhập theo định dạng dd/MM/yyyy!");
             }
         }
+    }
+
+    public static Boolean checkExistUserName(int userId, String userName) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        return qlTVResponsitory.isNameDuplicated(userId,userName);
+    }
+
+    public static Boolean checkOldName(int userId, String userName) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        return qlTVResponsitory.isOldName(userId,userName);
+    }
+
+    // ===== Các hàm validate chuẩn cho đầu vào (dùng chung ở Thêm & Import CSV) =====
+
+    // Tên người dùng: 2 - 30 ký tự
+    public static boolean isTenHopLe(String input) {
+        if (input == null) {
+            return false;
+        }
+        int length = input.trim().length();
+        return length >= 2 && length <= 30;
+    }
+
+    // Nơi ở: không trống, tối đa 50 ký tự
+    public static boolean isNoiOiHopLe(String input) {
+        if (input == null) {
+            return false;
+        }
+        int length = input.trim().length();
+        return length >= 1 && length <= 50;
+    }
+
+    // Tên tài khoản: 6 - 20 ký tự
+    public static boolean isAccountNameHopLe(String input) {
+        if (input == null) {
+            return false;
+        }
+        int length = input.trim().length();
+        return length >= 6 && length <= 20;
+    }
+
+    // Mật khẩu: tối thiểu 8 ký tự + chữ thường + chữ hoa + số + ký tự đặc biệt (@$!%*?&)
+    public static boolean isPasswordHopLe(String input) {
+        if (input == null) {
+            return false;
+        }
+        return input.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$");
+    }
+
+    // Kiểm tra tên đã tồn tại ở BẤT KỲ account nào (dùng khi thêm mới) -> true nếu trùng
+    public static Boolean checkNameExist(String name) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        return qlTVResponsitory.isNameExist(name);
+    }
+
+    // Kiểm tra account_name đã tồn tại ở BẤT KỲ account nào (dùng khi thêm mới) -> true nếu trùng
+    public static Boolean checkAccountNameExist(String accountName) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        return qlTVResponsitory.isAccountNameExist(accountName);
+    }
+
+    public static Boolean checkExistIdUserName (int id) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        if (qlTVResponsitory.getUserName(id) == null ) {
+            return true;
+        }
+        return false;
     }
 }

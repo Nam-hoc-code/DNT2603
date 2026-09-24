@@ -21,4 +21,6 @@ public interface IQLTVService {
     List<Position> getPositions();
 
     List<Department> getDepartments();
+
+    String importCsv(String fileName);
 }

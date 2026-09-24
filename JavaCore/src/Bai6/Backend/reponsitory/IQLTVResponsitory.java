@@ -28,4 +28,21 @@ public interface IQLTVResponsitory {
 
     // Lấy danh sách phòng ban (department) từ DB để Frontend hiển thị menu chọn
     List<Department> getDepartments();
+
+    // get date username
+    String getUserName(int userId);
+
+    // Kiểm tra tên trùng với account khác (id != userId) -> true nếu trùng
+    boolean isNameDuplicated(int userId,String name);
+
+    // Kiểm tra tên trùng với tên cũ (chính account đang sửa) -> true nếu trùng
+    boolean isOldName(int userId,String name);
+
+    // Kiểm tra tên đã tồn tại ở bất kỳ account nào -> true nếu có (dùng khi thêm mới)
+    boolean isNameExist(String name);
+
+    // Kiểm tra account_name đã tồn tại ở bất kỳ account nào -> true nếu có (dùng khi thêm mới)
+    boolean isAccountNameExist(String accountName);
+
+
 }
