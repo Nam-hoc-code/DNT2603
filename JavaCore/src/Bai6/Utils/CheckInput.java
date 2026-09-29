@@ -115,6 +115,15 @@ public class CheckInput {
         return length >= 6 && length <= 20;
     }
 
+    // Tên phòng ban: 1 - 100 ký tự (cột department_name VARCHAR(100))
+    public static boolean isTenPhongBanHopLe(String input) {
+        if (input == null) {
+            return false;
+        }
+        int length = input.trim().length();
+        return length >= 1 && length <= 100;
+    }
+
     // Mật khẩu: tối thiểu 8 ký tự + chữ thường + chữ hoa + số + ký tự đặc biệt (@$!%*?&)
     public static boolean isPasswordHopLe(String input) {
         if (input == null) {
@@ -133,6 +142,12 @@ public class CheckInput {
     public static Boolean checkAccountNameExist(String accountName) {
         IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
         return qlTVResponsitory.isAccountNameExist(accountName);
+    }
+
+    // Kiểm tra tên phòng ban đã tồn tại ở BẤT KỲ phòng ban nào (dùng khi thêm mới) -> true nếu trùng
+    public static Boolean checkDepartmentNameExist(String departmentName) {
+        IQLTVResponsitory qlTVResponsitory = new QLTVResponsitory();
+        return qlTVResponsitory.isDepartmentNameExist(departmentName);
     }
 
     public static Boolean checkExistIdUserName (int id) {

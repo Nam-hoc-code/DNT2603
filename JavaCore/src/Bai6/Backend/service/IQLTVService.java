@@ -23,4 +23,7 @@ public interface IQLTVService {
     List<Department> getDepartments();
 
     String importCsv(String fileName);
+
+    // Import file csv phòng ban (dùng chung engine generic CsvUtils)
+    String importDepartmentCsv(String fileName);
 }

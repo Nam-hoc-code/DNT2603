@@ -49,8 +49,13 @@ public class QLTVController {
     public List<Department> getDepartments() {
         return qlTVService.getDepartments();
     }
-    // Import CSV
+    // Import CSV account
     public String importCsv(String path) {
         return qlTVService.importCsv(path);
+    }
+
+    // Import CSV department
+    public String importDepartmentCsv(String path) {
+        return qlTVService.importDepartmentCsv(path);
     }
 }

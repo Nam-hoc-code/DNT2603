@@ -170,10 +170,11 @@ public class Function {
             System.out.println("3. Sua Ten Account.");
             System.out.println("4. Xoa Account.");
             System.out.println("5. Tim kiem Account.");
-            System.out.println("6. Import csv file");
-            System.out.println("7. Thoat.");
+            System.out.println("6. Import CSV account.");
+            System.out.println("7. Import CSV department.");
+            System.out.println("8. Thoat.");
 
-            int choice = CheckInput.nhapSoTrongKhoang(sc, "Moi ban chon: ", 1, 7);
+            int choice = CheckInput.nhapSoTrongKhoang(sc, "Moi ban chon: ", 1, 8);
 
             switch (choice) {
                 case 1:
@@ -191,10 +192,13 @@ public class Function {
                 case 5:
                     this.timKiem();
                     break;
-                case 6 :
-                    System.out.println(this.importCsv());
+                case 6:
+                    System.out.println(qlTVController.importCsv(nhapDuongDanCsv("--- Import CSV account ---")));
                     break;
                 case 7:
+                    System.out.println(qlTVController.importDepartmentCsv(nhapDuongDanCsv("--- Import CSV department ---")));
+                    break;
+                case 8:
                     System.out.println("Tam biet!");
                     return;
             }
@@ -287,14 +291,11 @@ public class Function {
         return departments.get(choice - 1).getIdDepartment(); // map số chọn -> id thật trong DB
     }
 
-    // Chức năng import nhanh qua file CSV
-    private String importCsv() {
-        // đưa file csv vào thông qua 1
-        System.out.println("--- Import csv file ---");
+    // Hỏi người dùng đường dẫn file csv (dùng chung cho import account & department)
+    private String nhapDuongDanCsv(String title) {
+        System.out.println(title);
         System.out.println("Nhập vào đường dẫn của file csv : ");
-        String path = sc.nextLine();
-        String message = qlTVController.importCsv(path);
-        return message;
+        return sc.nextLine();
     }
 
 

@@ -9,6 +9,7 @@ import Bai6.Utils.JDBCUtils;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -342,5 +343,137 @@ public class QLTVResponsitory implements IQLTVResponsitory {
             JDBCUtils.closeConnection(connection);
         }
         return duplicated;
+    }
+
+    @Override
+    public boolean themDepartment(Department department) {
+        // DB không có procedure thêm phòng ban -> dùng INSERT thường (id_department auto_increment)
+        String sql = "insert into department (id_manager, department_name, number_people) values (?, ?, ?)";
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                if (department.getIdManager() == null) {
+                    preparedStatement.setNull(1, Types.INTEGER);
+                } else {
+                    preparedStatement.setInt(1, department.getIdManager());
+                }
+                preparedStatement.setString(2, department.getDepartmentName());
+                if (department.getNumberPeople() == null) {
+                    preparedStatement.setNull(3, Types.INTEGER);
+                } else {
+                    preparedStatement.setInt(3, department.getNumberPeople());
+                }
+                return preparedStatement.executeUpdate() > 0;
+            }
+        } catch (SQLIntegrityConstraintViolationException e) {
+            // FK id_manager không tồn tại trong bảng account -> vi phạm ràng buộc
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public boolean isDepartmentNameExist(String departmentName) { // kiểm tra tên phòng ban đã tồn tại chưa
+        String query = "select count(*) from department where department_name = ?";
+        boolean duplicated = false;
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
+                preparedStatement.setString(1, departmentName);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.next()) {
+                        duplicated = resultSet.getInt(1) > 0;
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+        return duplicated;
+    }
+
+    @Override
+    public int[] themBatch(List<Account> accounts) {
+        // Tối ưu import: INSERT thường (procedure themTaiKhoan cũng chỉ là INSERT)
+        // + addBatch/executeBatch -> 1 kết nối, 1 lần gửi N dòng thay vì N lần INSERT riêng lẻ
+        String sql = "insert into account (name, location, account_name, password, id_position, id_department) "
+                + "values (?, ?, ?, ?, ?, ?)";
+        if (accounts == null || accounts.isEmpty()) {
+            return new int[0];
+        }
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                for (Account account : accounts) {
+                    preparedStatement.setString(1, account.getName());
+                    preparedStatement.setString(2, account.getLocation());
+                    preparedStatement.setString(3, account.getAccountName());
+                    preparedStatement.setString(4, account.getPassword());
+                    preparedStatement.setInt(5, account.getPosition().getIdPosition());
+                    preparedStatement.setInt(6, account.getDepartment().getIdDepartment());
+                    preparedStatement.addBatch(); // xếp dòng vào batch, CHƯA gửi
+                }
+                return preparedStatement.executeBatch(); // gửi toàn bộ trong 1 lần
+            }
+        } catch (BatchUpdateException e) {
+            // có dòng vi phạm ràng buộc -> mảng đánh dấu EXECUTE_FAILED đúng cho dòng đó,
+            // các dòng khác vẫn được thêm thành công
+            return e.getUpdateCounts();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            int[] failed = new int[accounts.size()];
+            Arrays.fill(failed, Statement.EXECUTE_FAILED);
+            return failed;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
+    }
+
+    @Override
+    public int[] themDepartmentBatch(List<Department> departments) {
+        // Tối ưu import phòng ban bằng JDBC batch (1 kết nối, 1 lần gửi N dòng)
+        String sql = "insert into department (id_manager, department_name, number_people) values (?, ?, ?)";
+        if (departments == null || departments.isEmpty()) {
+            return new int[0];
+        }
+        Connection connection = null;
+        try {
+            connection = JDBCUtils.getConnection();
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                for (Department department : departments) {
+                    if (department.getIdManager() == null) {
+                        preparedStatement.setNull(1, Types.INTEGER);
+                    } else {
+                        preparedStatement.setInt(1, department.getIdManager());
+                    }
+                    preparedStatement.setString(2, department.getDepartmentName());
+                    if (department.getNumberPeople() == null) {
+                        preparedStatement.setNull(3, Types.INTEGER);
+                    } else {
+                        preparedStatement.setInt(3, department.getNumberPeople());
+                    }
+                    preparedStatement.addBatch();
+                }
+                return preparedStatement.executeBatch();
+            }
+        } catch (BatchUpdateException e) {
+            return e.getUpdateCounts();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            int[] failed = new int[departments.size()];
+            Arrays.fill(failed, Statement.EXECUTE_FAILED);
+            return failed;
+        } finally {
+            JDBCUtils.closeConnection(connection);
+        }
     }
 }

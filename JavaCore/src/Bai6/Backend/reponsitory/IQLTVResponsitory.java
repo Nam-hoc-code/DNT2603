@@ -44,5 +44,17 @@ public interface IQLTVResponsitory {
     // Kiểm tra account_name đã tồn tại ở bất kỳ account nào -> true nếu có (dùng khi thêm mới)
     boolean isAccountNameExist(String accountName);
 
+    // Thêm phòng ban mới (id_department auto_increment) -> true nếu thành công
+    boolean themDepartment(Department department);
+
+    // Kiểm tra tên phòng ban đã tồn tại ở bất kỳ phòng ban nào -> true nếu trùng
+    boolean isDepartmentNameExist(String departmentName);
+
+    // Thêm NHIỀU account cùng lúc bằng JDBC batch (addBatch/executeBatch)
+    // -> mảng kết quả từng dòng (EXECUTE_FAILED = dòng lỗi)
+    int[] themBatch(List<Account> accounts);
+
+    // Thêm NHIỀU phòng ban cùng lúc bằng JDBC batch -> mảng kết quả từng dòng
+    int[] themDepartmentBatch(List<Department> departments);
 
 }

@@ -7,16 +7,9 @@ import Bai6.Entity.Account;
 import Bai6.Entity.Department;
 import Bai6.Entity.Position;
 import Bai6.Utils.CheckInput;
+import Bai6.Utils.CsvMapper;
+import Bai6.Utils.CsvUtils;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,76 +57,79 @@ public class QLTVService implements IQLTVService {
         return qlTVResponsitory.getDepartments();
     }
 
+    // Header mặc định cho file csv account (dùng khi file không có dòng header)
+    private static final String ACCOUNT_HEADER = "name,location,account_name,password,id_position,id_department";
+    // Header mặc định cho file csv department
+    private static final String DEPARTMENT_HEADER = "department_name,number_people,id_manager";
+
     @Override
     public String importCsv(String path) {
-        File file = new File(path);
-        // kiểm tra ban đầu
-        if (!file.exists()) {
-            return "File không tồn tại";
-        }
-        if (!path.endsWith(".csv")) {
-            return "Định dạng file không phù hợp cần .csv";
-        }
+        // GENERIC: chỉ cung cấp mapper; toàn bộ đọc file / gom lỗi / ghi file lỗi do CsvUtils lo
+        return CsvUtils.importCsv(path, ACCOUNT_HEADER, accountCsvMapper());
+    }
 
-        ArrayList<String> listErrors = new ArrayList<>();
-        int insertedCount = 0;
+    @Override
+    public String importDepartmentCsv(String path) {
+        // GENERIC: cùng engine CsvUtils, chỉ thay mapper là import được entity khác
+        return CsvUtils.importCsv(path, DEPARTMENT_HEADER, departmentCsvMapper());
+    }
 
-        // tập id vị trí / phòng ban ĐANG có trong DB để kiểm tra dòng nằm trong khoảng cho phép
+    // Mapper GENERIC cho Account: parse/validate 1 dòng CSV -> Account, saveBatch -> repository.themBatch
+    private CsvMapper<Account> accountCsvMapper() {
+        // Nạp 1 LẦN dữ liệu từ DB vào bộ nhớ: tập id vị trí / phòng ban + tập name / account_name
+        // (thay vì query từng dòng -> tránh mở kết nối hàng nghìn lần khi import file lớn)
         Set<Integer> positionIds = new HashSet<>();
+        Set<Integer> departmentIds = new HashSet<>();
+        Set<String> existingNames = new HashSet<>();
+        Set<String> existingAccountNames = new HashSet<>();
         for (Position p : qlTVResponsitory.getPositions()) {
             positionIds.add(p.getIdPosition());
         }
-        Set<Integer> departmentIds = new HashSet<>();
         for (Department d : qlTVResponsitory.getDepartments()) {
             departmentIds.add(d.getIdDepartment());
         }
+        for (Account acc : qlTVResponsitory.hienThi()) {
+            existingNames.add(acc.getName());
+            existingAccountNames.add(acc.getAccountName());
+        }
+        // bắt trùng ngay TRONG file (DB không có UNIQUE constraint ở name/account_name)
+        Set<String> seenNames = new HashSet<>();
+        Set<String> seenAccountNames = new HashSet<>();
 
-        // tách dữ lệu để add vào đối tượng
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            String headerLine = reader.readLine(); // dòng header (tiêu đề cột)
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) {
-                    continue; // bỏ qua dòng trống
-                }
-                String[] values = line.split(","); // dữ liệu của một line
+        return new CsvMapper<Account>() {
+            @Override
+            public Account parse(String[] values) {
                 if (values.length < 6) {
-                    listErrors.add(line + ", Thiếu cột dữ liệu");
-                    continue;
+                    throw new IllegalArgumentException("Thiếu cột dữ liệu");
                 }
-
                 String name = values[0].trim();
                 String location = values[1].trim();
                 String accountName = values[2].trim();
                 String password = values[3].trim();
 
-                // name: 2 - 30 ký tự, không trùng
                 if (!CheckInput.isTenHopLe(name)) {
-                    listErrors.add(line + ", Tên phải từ 2 - 30 ký tự");
-                    continue;
+                    throw new IllegalArgumentException("Tên phải từ 2 - 30 ký tự");
                 }
-                if (qlTVResponsitory.isNameExist(name)) {
-                    listErrors.add(line + ", Tên đã tồn tại trong DB");
-                    continue;
+                if (!seenNames.add(name)) {
+                    throw new IllegalArgumentException("Tên đã tồn tại trong file CSV này");
                 }
-                // location: tối đa 50 ký tự
+                if (existingNames.contains(name)) {
+                    throw new IllegalArgumentException("Tên đã tồn tại trong DB");
+                }
                 if (!CheckInput.isNoiOiHopLe(location)) {
-                    listErrors.add(line + ", Nơi ở không được quá 50 ký tự");
-                    continue;
+                    throw new IllegalArgumentException("Nơi ở không được quá 50 ký tự");
                 }
-                // account_name: 6 - 20 ký tự, không trùng
                 if (!CheckInput.isAccountNameHopLe(accountName)) {
-                    listErrors.add(line + ", Tên tài khoản phải từ 6 - 20 ký tự");
-                    continue;
+                    throw new IllegalArgumentException("Tên tài khoản phải từ 6 - 20 ký tự");
                 }
-                if (qlTVResponsitory.isAccountNameExist(accountName)) {
-                    listErrors.add(line + ", Tên tài khoản đã tồn tại trong DB");
-                    continue;
+                if (!seenAccountNames.add(accountName)) {
+                    throw new IllegalArgumentException("Tên tài khoản đã tồn tại trong file CSV này");
                 }
-                // password: tối thiểu 8 ký tự + đủ mạnh
+                if (existingAccountNames.contains(accountName)) {
+                    throw new IllegalArgumentException("Tên tài khoản đã tồn tại trong DB");
+                }
                 if (!CheckInput.isPasswordHopLe(password)) {
-                    listErrors.add(line + ", Mật khẩu phải tối thiểu 8 ký tự, gồm chữ thường, chữ hoa, số và ký tự đặc biệt");
-                    continue;
+                    throw new IllegalArgumentException("Mật khẩu phải tối thiểu 8 ký tự, gồm chữ thường, chữ hoa, số và ký tự đặc biệt");
                 }
 
                 int idPosition;
@@ -142,53 +138,96 @@ public class QLTVService implements IQLTVService {
                     idPosition = Integer.parseInt(values[4].trim());
                     idDepartment = Integer.parseInt(values[5].trim());
                 } catch (NumberFormatException e) {
-                    listErrors.add(line + ", Vị trí/phòng ban phải là số");
-                    continue;
+                    throw new IllegalArgumentException("Vị trí/phòng ban phải là số");
                 }
-                // id_position, id_department: phải nằm trong khoảng id ĐANG có trong DB
                 if (!positionIds.contains(idPosition)) {
-                    listErrors.add(line + ", Vị trí id " + idPosition + " không tồn tại trong DB");
-                    continue;
+                    throw new IllegalArgumentException("Vị trí id " + idPosition + " không tồn tại trong DB");
                 }
                 if (!departmentIds.contains(idDepartment)) {
-                    listErrors.add(line + ", Phòng ban id " + idDepartment + " không tồn tại trong DB");
-                    continue;
+                    throw new IllegalArgumentException("Phòng ban id " + idDepartment + " không tồn tại trong DB");
                 }
 
-                Account account = new Account();
-                account.setName(name);
-                account.setLocation(location);
-                account.setAccountName(accountName);
-                account.setPassword(password);
-                account.setPosition(new Position(idPosition));
-                account.setDepartment(new Department(idDepartment));
-                if (qlTVResponsitory.them(account)) {
-                    insertedCount++;
-                } else {
-                    listErrors.add(line + ", Không thể thêm vào DB (vi phạm ràng buộc)");
-                }
+                return new Account(null, name, location, accountName, password,
+                        new Position(idPosition), new Department(idDepartment));
             }
 
-            // ghi danh sách lỗi ra file csv dùng BufferedWriter
-            if (!listErrors.isEmpty()) {
-                String errorPath = path.substring(0, path.toLowerCase().lastIndexOf(".csv")) + "_errors.csv";
-                try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-                        new FileOutputStream(errorPath), StandardCharsets.UTF_8))) {
-                    writer.write((headerLine == null ? "name,location,account_name,password,id_position,id_department" : headerLine) + ",error");
-                    writer.newLine();
-                    for (String error : listErrors) {
-                        writer.write(error);
-                        writer.newLine();
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return "Thực hiện lưu thành công " + insertedCount + " dòng, " + listErrors.size()
-                        + " dòng lỗi. File lỗi: " + errorPath;
+            @Override
+            public int[] saveBatch(List<Account> accounts) {
+                // batch insert: toàn bộ dòng hợp lệ được gửi xuống DB trong 1 lần
+                return qlTVResponsitory.themBatch(accounts);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        };
+    }
+
+    // Mapper GENERIC cho Department: parse/validate 1 dòng CSV -> Department, saveBatch -> repository.themDepartmentBatch
+    private CsvMapper<Department> departmentCsvMapper() {
+        // Nạp 1 LẦN từ DB vào bộ nhớ: tập id account (ứng viên làm quản lý) + tập tên phòng ban
+        Set<Integer> managerIds = new HashSet<>();
+        Set<String> existingDepartmentNames = new HashSet<>();
+        for (Account acc : qlTVResponsitory.hienThi()) {
+            managerIds.add(acc.getIdAccount());
         }
-        return "Thực hiện lưu thành công " + insertedCount + " dòng";
+        for (Department d : qlTVResponsitory.getDepartments()) {
+            existingDepartmentNames.add(d.getDepartmentName());
+        }
+        // bắt trùng ngay TRONG file (DB không có UNIQUE constraint ở department_name)
+        Set<String> seenDepartmentNames = new HashSet<>();
+
+        return new CsvMapper<Department>() {
+            @Override
+            public Department parse(String[] values) {
+                if (values.length < 3) {
+                    throw new IllegalArgumentException("Thiếu cột dữ liệu");
+                }
+                String departmentName = values[0].trim();
+                String numberPeople = values[1].trim();
+                String idManager = values[2].trim();
+
+                // department_name: 1 - 100 ký tự, không trùng
+                if (!CheckInput.isTenPhongBanHopLe(departmentName)) {
+                    throw new IllegalArgumentException("Tên phòng ban phải từ 1 - 100 ký tự");
+                }
+                if (!seenDepartmentNames.add(departmentName)) {
+                    throw new IllegalArgumentException("Tên phòng ban đã tồn tại trong file CSV này");
+                }
+                if (existingDepartmentNames.contains(departmentName)) {
+                    throw new IllegalArgumentException("Tên phòng ban đã tồn tại trong DB");
+                }
+
+                // number_people: để trống -> null, ngược lại phải là số nguyên >= 0
+                Integer numberOfPeople = null;
+                if (!numberPeople.isEmpty()) {
+                    try {
+                        numberOfPeople = Integer.parseInt(numberPeople);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Số người phải là số nguyên");
+                    }
+                    if (numberOfPeople < 0) {
+                        throw new IllegalArgumentException("Số người không được là số âm");
+                    }
+                }
+
+                // id_manager: để trống -> null (chưa có quản lý), ngược lại phải tồn tại trong bảng account
+                Integer idManagerValue = null;
+                if (!idManager.isEmpty()) {
+                    try {
+                        idManagerValue = Integer.parseInt(idManager);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException("Quản lý phải là id số");
+                    }
+                    if (!managerIds.contains(idManagerValue)) {
+                        throw new IllegalArgumentException("Quản lý id " + idManagerValue + " không tồn tại trong DB");
+                    }
+                }
+
+                return new Department(null, idManagerValue, departmentName, numberOfPeople);
+            }
+
+            @Override
+            public int[] saveBatch(List<Department> departments) {
+                // batch insert: toàn bộ dòng hợp lệ được gửi xuống DB trong 1 lần
+                return qlTVResponsitory.themDepartmentBatch(departments);
+            }
+        };
     }
 }
