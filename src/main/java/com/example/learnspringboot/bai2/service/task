@@ -1,0 +1,25 @@
+BTVN:
+
+Create a project named btvn-buoi2
+
+entity
+
+account, department, position, group, group_account
+
+CRUD:
+
+with account
+
+with group
+
+Add account to group (create)
+
+See which groups that account is participating in (read)
+
+See which accounts are in that group (read)
+
+ATTENTION:
+
+1. Use DTO for GET APIs, and forms for POST and PUT APIs.
+
+2. Validation with information such as ID and unique information (in the service).

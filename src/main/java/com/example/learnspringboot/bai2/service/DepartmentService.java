@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class DepartmentService {
+public class DepartmentService implements IDepartmentService {
     private final DepartmentRepository departmentRepository;
 
     public DepartmentService(DepartmentRepository departmentRepository) {

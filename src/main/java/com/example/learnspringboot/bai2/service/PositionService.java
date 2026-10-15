@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class PositionService {
+public class PositionService implements IPositionService {
     private final PositionRepository positionRepository;
 
     public PositionService(PositionRepository positionRepository) {

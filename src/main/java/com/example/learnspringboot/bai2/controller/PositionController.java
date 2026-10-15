@@ -1,7 +1,7 @@
 package com.example.learnspringboot.bai2.controller;
 
 import com.example.learnspringboot.bai2.entity.Position;
-import com.example.learnspringboot.bai2.service.PositionService;
+import com.example.learnspringboot.bai2.service.IPositionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/positions")
 public class PositionController {
-    private final PositionService positionService;
+    private final IPositionService positionService;
 
-    public PositionController(PositionService positionService) {
+    public PositionController(IPositionService positionService) {
         this.positionService = positionService;
     }
 

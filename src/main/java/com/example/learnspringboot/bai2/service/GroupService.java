@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class GroupService {
+public class GroupService implements IGroupService {
     private final GroupRepository groupRepository;
 
     public GroupService(GroupRepository groupRepository) {

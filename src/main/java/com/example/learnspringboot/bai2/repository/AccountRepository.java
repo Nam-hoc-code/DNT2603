@@ -20,3 +20,4 @@ public interface AccountRepository extends JpaRepository<Account, Integer> {
     @Query("SELECT a FROM Account a WHERE a.position.id = :posId")
     List<Account> findByPositionId(@Param("posId") Integer posId);
 }
+

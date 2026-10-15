@@ -1,7 +1,7 @@
 package com.example.learnspringboot.bai2.controller;
 
 import com.example.learnspringboot.bai2.entity.Group;
-import com.example.learnspringboot.bai2.service.GroupService;
+import com.example.learnspringboot.bai2.service.IGroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/groups")
 public class GroupController {
-    private final GroupService groupService;
+    private final IGroupService groupService;
 
-    public GroupController(GroupService groupService) {
+    public GroupController(IGroupService groupService) {
         this.groupService = groupService;
     }
 

@@ -1,7 +1,7 @@
 package com.example.learnspringboot.bai2.controller;
 
 import com.example.learnspringboot.bai2.entity.Department;
-import com.example.learnspringboot.bai2.service.DepartmentService;
+import com.example.learnspringboot.bai2.service.IDepartmentService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/departments")
 public class DepartmentController {
-    private final DepartmentService departmentService;
+    private final IDepartmentService departmentService;
 
-    public DepartmentController(DepartmentService departmentService) {
+    public DepartmentController(IDepartmentService departmentService) {
         this.departmentService = departmentService;
     }
 

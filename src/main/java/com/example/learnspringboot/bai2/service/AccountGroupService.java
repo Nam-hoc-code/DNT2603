@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class AccountGroupService {
+public class AccountGroupService implements IAccountGroupService {
     private final AccountGroupRepository accountGroupRepository;
     private final AccountRepository accountRepository;
     private final GroupRepository groupRepository;

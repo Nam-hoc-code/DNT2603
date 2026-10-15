@@ -1,7 +1,7 @@
 package com.example.learnspringboot.bai2.controller;
 
 import com.example.learnspringboot.bai2.entity.Account;
-import com.example.learnspringboot.bai2.service.AccountService;
+import com.example.learnspringboot.bai2.service.IAccountService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,9 +10,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
-    private final AccountService accountService;
+    private final IAccountService accountService;
 
-    public AccountController(AccountService accountService) {
+    public AccountController(IAccountService accountService) {
         this.accountService = accountService;
     }
 

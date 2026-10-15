@@ -3,7 +3,7 @@ package com.example.learnspringboot.bai2.controller;
 import com.example.learnspringboot.bai2.entity.Account;
 import com.example.learnspringboot.bai2.entity.AccountGroup;
 import com.example.learnspringboot.bai2.entity.Group;
-import com.example.learnspringboot.bai2.service.AccountGroupService;
+import com.example.learnspringboot.bai2.service.IAccountGroupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +12,9 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/account-groups")
 public class AccountGroupController {
-    private final AccountGroupService accountGroupService;
+    private final IAccountGroupService accountGroupService;
 
-    public AccountGroupController(AccountGroupService accountGroupService) {
+    public AccountGroupController(IAccountGroupService accountGroupService) {
         this.accountGroupService = accountGroupService;
     }
 
